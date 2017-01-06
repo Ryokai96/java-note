@@ -1647,13 +1647,13 @@ class B4 extends A {
 
 #### 一维数组的声明
 1. 一维数组的声明方式：
-   > type var[]; 或 type[] var;
+	> type var[]; 或 type[] var;
 2. Java语言中声明数组时不能指定其长度，例如：
-   > int a[5]; //错误
+	> int a[5]; //错误
 
 #### 数组对象的创建
 - Java中使用new关键字创建数组对象，格式为：
-  > 数组名 = new 数组元素的类型[数组元素的个数]
+	> 数组名 = new 数组元素的类型[数组元素的个数]
 
 ```java
 public class Test {
@@ -1748,9 +1748,9 @@ class Date {
 
 #### 数组元素的引用
 - 定义并用运行算符new位置分配空间后，才可以引用数组中的每个元素
-  - 引用方式，例如：a[3],b[i];
+	- 引用方式，例如：a[3],b[i];
 - 每个数组都有一个属性length指明其长度(元素个数)。
-  - 例如：a.length
+	- 例如：a.length
 
 ### 3.03 数组排序
 #### 普通整形数组选择排序
@@ -1872,11 +1872,9 @@ class Date {
 }
 ```
 
-
-
 ### 3.04 练习
 - 题目：数三退一
-  共有500个人，第一个人数1，第二个人数2，第三个人数3，第三个人退出，然后从第四个人开始数，第四个人数1，第五个人数2，第六个人数3，第六个人退出......每个数到三的人退出，直到剩下最后一个人，试写一个程序，求出最后一个人原来位置（是500个人中第几个人）
+	共有500个人，第一个人数1，第二个人数2，第三个人数3，第三个人退出，然后从第四个人开始数，第四个人数1，第五个人数2，第六个人数3，第六个人退出......每个数到三的人退出，直到剩下最后一个人，试写一个程序，求出最后一个人原来位置（是500个人中第几个人）
 ```java
 public class Count3Quit {
     public static void main(String[] args) {
@@ -2003,5 +2001,198 @@ class KidCircle {
 
 		count --;
 	}
+}
+```
+
+### 3.05 数组查找
+
+TestSearch.java
+```java
+public class TestSearch {
+	public static void main(String[] args) {
+		int a[] = {1, 3, 6, 8, 9, 10, 12, 18, 20, 34};
+		int i = 12;
+		System.out.println(binarySearch(a, i));
+	}
+
+	public static int search(int[] a, int num) {
+		for(int i = 0; i < a.length; i++) {
+			if(a[i] == num) 
+				return i;
+		}
+		return -1;
+	}
+
+	//二分法查找(折半查找)，返回值是该值在数组中的位置
+	public static int binarySearch(int[] a, int num) {
+		if(a.length == 0)
+			return -1;
+
+		int startPos = 0;
+		int endPos = a.length - 1;
+		int m = (startPos + endPos) / 2;
+		while(startPos <= endPos) {
+			if(num == a[m])
+				return m;
+			if(num > a[m]) {
+				startPos = m + 1;
+			}
+			if(num < a[m]) {
+				endPos = m - 1;
+			}
+			m = (startPos + endPos) / 2;
+		}
+		return -1;
+	}
+}
+```
+
+在3.03中的TestDateSort.java中加入查找算法
+
+```java
+public class TestDateSort {
+    public static void main(String[] args) {
+        Date[] days = new Date[5];
+        days[0] = new Date(2016, 5, 4);
+        days[1] = new Date(2016, 7, 4);
+        days[2] = new Date(2018, 5, 4);
+        days[3] = new Date(2014, 5 ,9);
+        days[4] = new Date(2014, 5, 4);
+
+        bubbleSort(days);
+
+        for(int i = 0; i < days.length; i++) {
+            System.out.println(days[i]);
+        }
+
+        Date day = new Date(2014, 5, 9);
+        System.out.println(binarySearch(days, day));
+    }
+
+    //冒泡排序
+    public static Date[] bubbleSort(Date[] a) {
+        int len = a.length;
+        Date temp;
+        for(int i = len - 1; i >= 1; i--) {
+            for(int j = 0; j <= i - 1; j++) {
+                if(a[j].compare(a[j+1]) > 0) {
+                    temp = a[j];
+                    a[j] = a[j+1];
+                    a[j+1] = temp;
+                }
+            }
+        }
+        return a;
+    }
+
+    //折半查找
+    public static int binarySearch(Date[] a, Date day) {
+        if(a.length == 0)
+            return -1;
+
+        int startPos = 0;
+        int endPos = a.length - 1;
+        int m = (startPos + endPos) / 2;
+        while(startPos <= endPos) {
+            if(a[m].compare(day) == 0)
+                return m;
+            if(a[m].compare(day) == 1) {
+                endPos = m - 1;
+            }
+            if(a[m].compare(day) == -1) {
+                startPos = m + 1;
+            }
+
+            m = (startPos + endPos) / 2;
+        }
+
+        return -1;
+    }
+}
+
+class Date {
+    int year, month, day;
+    Date(int y, int m, int d) {
+        year = y; month = m; day = d;
+    }
+    //比较Date类对象的方法
+    public int compare(Date date) { 
+        return year > date.year ? 1 
+            : year < date.year ? -1 
+            : month > date.month ? 1
+            : month < date.month ? -1
+            : day > date.day ? 1
+            : day < date.day ? -1 : 0;
+    }
+
+    public String toString() {
+        return "Year:Month:Day -- " + year + "-" + month + "-" + day;
+    }
+}
+```
+
+### 3.06 二维数组
+- Java中多维数组的声明和初始化应按从高维到低维的顺序进行：
+```java
+int a[][] = new int[3][];	//先分配第一维
+a[0] = new int[2];
+a[1] = new int[4];
+a[2] = new int[3];
+int t1[][] = new int[][4];	//非法
+```
+
+- 静态初始化：
+```java
+int a[][] = {{1, 2}, {2, 3}, {3, 4, 5}};
+int b[3][2] = {{1, 2}, {2, 3}, {4, 5}};	//非法
+```
+- 动态初始化
+```java
+int a[][] = new int[3][5];
+int b[][] = new int[3][];
+b[0] = new int[2];
+b[1] = new int[4];
+b[2] = new int[3];
+```
+
+- 注意
+```java
+int a[][] = {{1, 2}, {3, 4, 5, 6}, {3, 4, 5}};
+System.out.println(a.length);	//输出值为3
+```
+
+
+### 3.07 数组的拷贝
+- 使用java.lang.System类的静态方法
+	> public static void arraycopy (Object src, int srcPos, Object dest, int destPos, int length);
+
+	- 可以用数组src从第srcPos元素开始的length个元素拷贝到目标数组dest从destPos项开始的length个位置
+	- 如果源数据数目超过目标数组边界会抛出IndexOutOfBoundsException异常
+```java
+public class TestArrayCopy {
+    public static void main(String args[]) {
+        String[] s = {"Mircosoft", "IBM", "Sun", "Oracle", "Apple"};
+        String[] sBak = new String[6];
+        System.arraycopy(s, 0, sBak, 0, s.length);
+    
+        for(int i = 0; i < sBak.length; i++) {
+            System.out.print(sBak[i] + " ");
+        }
+    
+        System.out.println();
+
+        int[][] intArray = {{1, 2}, {1, 2, 3}, {3, 4}};
+        int[][] intArrayBak = new int[3][];
+        System.arraycopy(intArray, 0, intArrayBak, 0, intArray.length);
+
+        intArrayBak[2][1] = 100;
+    
+        for(int i = 0;i<intArray.length;i++) {
+            for(int j =0;j<intArray[i].length;j++) {
+                System.out.print(intArray[i][j] + "  "); 
+            }
+            System.out.println();
+        }
+    }
 }
 ```
