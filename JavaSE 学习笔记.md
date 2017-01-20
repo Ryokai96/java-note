@@ -2823,7 +2823,7 @@ public class TestEnum {
 - J2SDK所提供的容器API位于java.util包内
 - 容器API的类图结构：
 
-![幻灯片32](/home/ryokai/git_projects/myjavanote.github.io/幻灯片32.jpg)
+![容器API的类图结构](https://github.com/Ryokai96/myjavanote.github.io/blob/master/%E5%AE%B9%E5%99%A8API%E7%9A%84%E7%B1%BB%E5%9B%BE%E7%BB%93%E6%9E%84.jpg?raw=true)
 
 - Collection 接口定义了存取一组对象的方法，其自接口Set和List分别定义了存储方式
   - Set中的数据对象没有顺序且不可以重复（重复即指对象之间相互equals）
