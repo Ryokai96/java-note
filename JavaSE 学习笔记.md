@@ -1647,13 +1647,13 @@ class B4 extends A {
 
 #### 一维数组的声明
 1. 一维数组的声明方式：
-	> type var[]; 或 type[] var;
+   > type var[]; 或 type[] var;
 2. Java语言中声明数组时不能指定其长度，例如：
-	> int a[5]; //错误
+   > int a[5]; //错误
 
 #### 数组对象的创建
 - Java中使用new关键字创建数组对象，格式为：
-	> 数组名 = new 数组元素的类型[数组元素的个数]
+  > 数组名 = new 数组元素的类型[数组元素的个数]
 
 ```java
 public class Test {
@@ -1748,9 +1748,9 @@ class Date {
 
 #### 数组元素的引用
 - 定义并用运行算符new位置分配空间后，才可以引用数组中的每个元素
-	- 引用方式，例如：a[3],b[i];
+  - 引用方式，例如：a[3],b[i];
 - 每个数组都有一个属性length指明其长度(元素个数)。
-	- 例如：a.length
+  - 例如：a.length
 
 ### 3.03 数组排序
 #### 普通整形数组选择排序
@@ -1874,7 +1874,7 @@ class Date {
 
 ### 3.04 练习
 - 题目：数三退一
-	共有500个人，第一个人数1，第二个人数2，第三个人数3，第三个人退出，然后从第四个人开始数，第四个人数1，第五个人数2，第六个人数3，第六个人退出......每个数到三的人退出，直到剩下最后一个人，试写一个程序，求出最后一个人原来位置（是500个人中第几个人）
+  共有500个人，第一个人数1，第二个人数2，第三个人数3，第三个人退出，然后从第四个人开始数，第四个人数1，第五个人数2，第六个人数3，第六个人退出......每个数到三的人退出，直到剩下最后一个人，试写一个程序，求出最后一个人原来位置（是500个人中第几个人）
 ```java
 public class Count3Quit {
     public static void main(String[] args) {
@@ -2086,20 +2086,20 @@ public class TestDateSort {
     }
 
     //折半查找
-    public static int binarySearch(Date[] a, Date day) {
-        if(a.length == 0)
+    public static int binarySearch(Date[] days, Date day) {
+        if(days.length == 0)
             return -1;
 
         int startPos = 0;
-        int endPos = a.length - 1;
+        int endPos = days.length - 1;
         int m = (startPos + endPos) / 2;
         while(startPos <= endPos) {
-            if(a[m].compare(day) == 0)
+            if(days[m].compare(day) == 0)
                 return m;
-            if(a[m].compare(day) == 1) {
+            if(days[m].compare(day) == 1) {
                 endPos = m - 1;
             }
-            if(a[m].compare(day) == -1) {
+            if(days[m].compare(day) == -1) {
                 startPos = m + 1;
             }
 
@@ -2164,10 +2164,10 @@ System.out.println(a.length);	//输出值为3
 
 ### 3.07 数组的拷贝
 - 使用java.lang.System类的静态方法
-	> public static void arraycopy (Object src, int srcPos, Object dest, int destPos, int length);
+  > public static void arraycopy (Object src, int srcPos, Object dest, int destPos, int length);
 
-	- 可以用数组src从第srcPos元素开始的length个元素拷贝到目标数组dest从destPos项开始的length个位置
-	- 如果源数据数目超过目标数组边界会抛出IndexOutOfBoundsException异常
+  - 可以用数组src从第srcPos元素开始的length个元素拷贝到目标数组dest从destPos项开始的length个位置
+  - 如果源数据数目超过目标数组边界会抛出IndexOutOfBoundsException异常
 ```java
 public class TestArrayCopy {
     public static void main(String args[]) {
@@ -2196,3 +2196,816 @@ public class TestArrayCopy {
     }
 }
 ```
+
+## 4. 常用类
+### 4.01 String类
+- java.lang.String类代表**不可变**的字符序列
+- "xxxx"为该类的一个对象
+#### String类常见构造方法：
+- String(String original)
+  创建一个String对象为original的拷贝
+- Stirng(char[] value)
+  用一个字符数组创建一个String对象
+- String(char[] value, int offset, int count)
+  用一个字符数组从offset项开始的count个字符序列创建一个String对象
+
+```java
+public class Test {
+	public static void main(String[] args) {
+		//hello是一个字符串常量，分配在data segment中，s1指向了hello
+		String s1 = "hello";
+		String s2 = "world";
+		//在data segment中已存在hello时，s3直接指向hello，不会新生成一个hello
+		String s3 = "hello";
+		//打印true
+		System.out.println(s1 == s3);
+		
+		s1 = new String("hello");
+		s2 = new String("hello");
+		//打印false
+		System.out.println(s1 == s2);
+		//打印true，String类重写了equals方法，比较s1和s2的字符序列是否相同
+		System.out.println(s1.equals(s2));
+		
+		char c[] = {'s', 'u', 'n', ' ', 'j', 'a', 'v', 'a'};
+		String s4 = new String(c);
+		//从c[4]开始的4个字符序列创建一个String对象，并让s5指向这个对象
+		Stirng s5 = new String(c, 4, 4);
+		//打印sun java
+		System.out.println(s4);
+		//打印java
+		System.out.println(s5);
+	}
+}
+```
+
+#### String类常用方法(1)
+- public char charAr(int index)
+  返回字符串中第index个字符。
+- public int length()
+  返回字符串的长度。
+- public int indexOf(String str)
+  返回字符串中出现str的第一个位置，若该对象中不存在str字符串，则返回-1
+- public int indexOf(String str, int fromIndex)
+  返回字符串中从fromIndex开始出现str的第一个位置，若该对象从fromIndex开始不存在str字符串，则返回-1
+- public boolean equalsIgnoreCase(String another)
+  比较字符串与another是否一样（忽略大小写）
+- public String replace(char oldChar, char newChar)
+  在字符串中用newChar字符替换oldChar字符
+```java
+public class Test {
+    public class void main(Srting[] args) {
+        String s1 = "sun java";
+        String s2 = "Sun Java";
+        System.out.println(s1.charAt(1));   //u
+        System.out.println(s2.length());    //8
+        System.out.println(s1.indexOf("java")); //4
+        System.out.println(s1.indexOf("Java")); //-1
+        System.out.println(s1.equals(s2));  //false
+        System.out.println(s1.euqalsIgnoreCase(s2));    //true
+
+        String s = "我是程序员，我在学java";
+        String sr = s.replace('我', '你');
+        System.out.println(sr); //你是程序员，你在学java
+    }
+}
+```
+
+
+#### String类常用方法(2)
+
+- public boolean startsWith(String prefix)
+
+  判断字符串是否以prefix字符串开头
+
+- public boolean endsWith(String suffix)
+
+  判断字符串是否以suffix字符串结尾
+
+- public String toUpperCase()
+
+  返回一个字符串为该字符串的大写形式
+
+- public String toLowerCase()
+
+  返回一个字符串为该字符串的小写形式
+
+- public String substring(int beginIndex)
+
+  返回该字符串从beginIndex开始到结尾的子字符串
+
+- public String substring(int beginIndex, int endIndex)
+
+  返回该字符串从beginIndex开始到endIndex结尾的子字符串
+
+- public String trim()
+
+  返回将该字符串去掉开头和结尾空格后的字符串
+
+```java
+public class Test {
+    public static void main(String[] args) {
+        String s = "Welcome to Java World!";
+        String s1 = "   sun java   ";
+        System.out.println(s.startsWith("Welcome"));    //true
+        System.out.println(s.endsWith("World"));    //false
+        String sL = s.toLowerCase();
+        String sU = s.toUpperCase();
+        System.out.println(sL); //welcome to java world!
+        System.out.println(sU); //WELCOME TO JAVA WORLD!
+        String subS = s.substring(11);
+        System.out.println(subS);   //Java World!
+        String sp = s1.trim();
+        System.out.println(sp); //sun java
+    }
+}
+```
+
+
+
+#### String类常用方法(3)
+
+- 静态重载方法
+
+  - public static String valueOf(...)可以将基本数据类型转换为字符串
+
+    例如：
+
+    - public static String valueOf(double d)
+    - public static String value Of(int i)
+
+- 方法publiuc String[] split(String regex)可以将一个字符串按照指定的分隔符分割，返回分隔后的字符串数组
+
+```java
+public class Test {
+    public static void main(String[] agrs) {
+        int j = 123456;
+        String sNumber = String.valueOf(j);
+        System.out.println("j 是" + sNumber.length() + "位数。");
+        String s = "Mary,F,1976";
+        String[] sPlit = s.split(",");
+        for(int i = 0; i < sPlit.length; i++) {
+            System.out.println(sPlit[i]);
+        }
+    }
+}
+```
+
+
+
+输出结果：
+
+> j 是6位数。
+> Mary
+> F
+> 1976
+
+
+
+- 练习：
+
+  - 编写一个程序，输出一个字符串中的大写英文字母数，小写英文字母数以及非英文字母数。
+
+    ```java
+    public class TestString {
+        public static void main(String[] args) {
+            String s = "AaaaABBBcc&^%adfsfdCCOOkk99876 _haHA";
+            int lCount = 0, uCount = 0, oCount = 0;
+    ```
+
+
+            // for(int i = 0; i < s.length(); i++) {
+            //     char c = s.charAt(i);
+            //     if(c >= 'a' && c <= 'z') {
+            //         lCount ++;
+            //     } else if (c >= 'A' && c <= 'Z') {
+            //         uCount ++;
+            //     } else {
+            //         oCount ++;
+            //     }
+            // }
+
+
+            // String sL = "abcdefghijklmnopqrstuvwxyz";
+            // String sU = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            // for(int i = 0; i < s.length(); i++) {
+            //     char c = s.charAt(i);
+            //     if(sL.indexOf(c) != -1) {
+            //         lCount ++;
+            //     } else if (sU.indexOf(c) != -1) {
+            //         uCount ++;
+            //     } else {
+            //         oCount ++;
+            //     }
+            // }
+
+
+            for(int i = 0; i < s.length(); i++) {
+                char c = s.charAt(i);
+                if(Character.isLowerCase(c)) {
+                    lCount ++;
+                } else if (Character.isUpperCase(c)) {
+                    uCount ++;
+                } else {
+                    oCount ++;
+                }
+            }
+
+
+            System.out.println(lCount + " " + uCount + " " + oCount);
+        }
+    }
+    ​```
+
+-   编写一个方法，输出在一个字符串中，指定字符串出现的次数。 
+
+    ```java
+    public class TestString {
+        public static void main(String[] args) {
+            String s = "sunjavahojavaokjavajjavahahajavajavagoodjava";
+            
+            
+            // String s1 = s + "s";
+            // String[] sPlit = s1.split("java");
+            // if(s1.startsWith("java")) {
+            //     System.out.println(sPlit.length);
+            // } else {
+            //     System.out.println(sPlit.length - 1);
+            // }
+    ```
+
+
+            String sToFind = "java";
+            int count = 0;
+            int index = -1;
+            while((index = s.indexOf(sToFind)) != -1) {
+                s = s.substring(index + sToFind.length());
+                count ++;
+            }
+    
+            System.out.println(count);
+        }
+    }
+    ​```
+    
+    ​
+
+### 4.02 StringBuffer 类
+
+- java.lang.StringBuffer 代表**可变**的字符序列
+
+- StringBuffer和String类似，但StringBuffer可以对其字符串进行改变
+
+- StringBuffer类的常见构造方法：
+
+  - StringBuffer()
+
+    创建一个不包含字符序列的“空”的StringBuffer对象
+
+  - StringBuffer(String str)
+
+    创建一个StringBuffer对象，包含与String对象str相同的字符序列
+
+
+
+#### StringBuffer 常用方法
+
+- 重载方法 **public StringBuffer append(...)** 可以为该StringBuffer 对象添加字符序列，返回添加后的该StringBuffer对象引用，例如：
+
+  > public StringBuffer append(String str)
+  >
+  > public StringBuffer append(StringBuffer sbuf)
+  >
+  > public StringBuffer append(char[] str)
+  >
+  > public StringBuffer append(char[] str, int offset, int len)
+  >
+  > public StringBuffer append(double d)
+  >
+  > public StringBuffer append(Object obj)
+
+- 重载方法 **public StringBuffer insert(...)** 可以为该StringBuffer对象在指定位置插入字符序列，返回修改后的该StringBuffer对象引用，例如：
+
+  > public StringBuffer insert(int offset, String str)
+  >
+  > public StringBuffer insert(int offset, double d)
+
+- 方法 **public StringBuffer delete(int start, int end)** 可以删除从start开始到end-1为止的一段字符序列，返回修改后的该StringBuffer对象引用
+
+- 和String类含义类似的方法：
+
+  > public int indexOf(String str)
+  >
+  > public int indexOf(String str, int fromIndex)
+  >
+  > public String substring(int start)
+  >
+  > public String substring(int start, int end)
+  >
+  > public int length()
+
+- 方法 **public StringBuffer reverse()** 用于将字符序列逆序，返回修改后的该StringBuffer对象引用
+
+```java
+public class Test {
+    public static void main(String[] args) {
+        String s = "Ubuntu";
+        char[] a = {'a', 'b', 'c'};
+        StringBuffer sb1 = new StringBuffer(s);
+        sb1.append('/').append("Oracle").append('/').append("Sun");
+        System.out.println(sb1);
+        StringBuffer sb2 = new StringBuffer("数学");
+        for(int i = 0; i <= 9; i++) {
+            sb2.append(i);
+        }
+        System.out.println(sb2);
+        sb2.delete(8, sb2.length()).insert(0, a);
+        System.out.println(sb2);
+        System.out.println(sb2.reverse());
+    }
+}
+```
+
+
+
+### 4.03 基础数据类型包装类
+
+- 包装类(如：Integer，Double等)封装了一个相应的基本数据类型数值，并为其提供了一系列操作
+- 以java.lang.Integer类为例；构造方法：
+  - Integer(int value)
+  - Integer(String s)
+  - public static final int MAX_VALUE 最大的int型数
+  - public static final int MIN_VALUE 最小的int型数
+  - public long longValue() 返回封装数据的long型值
+  - public double doubleValue() 返回封装数据类型的double型值
+  - public int intValue() 返回封装数据类型的int型值
+  - public static int parseInt(String s) throws NumberFormatException 将字符串解析成int型数据，返回该数据
+  - public static Integer valueOf(String s) throws NumberFormatException 返回Integer对象，其中封装的整型数据为字符串s所表示
+
+```java
+public class Test {
+    public static void main(String[] args) {
+        Integer i = new Integer(100);
+        Double d = new Double ("123.456");
+        int j = i.intValue() + d.intValue();
+        float f = i.floatValue() + d.floatValue();
+        System.out.println(j);
+        System.out.println(f);
+        double pi = Double.parseDouble("3.1415926");
+        double r = Double.valueOf("2.0").doubleValue();
+        double s = pi * r * r;
+        System.out.println(s);
+        try {
+            int k = Integer.parseInt("1.25");
+        } catch (NumberFormatException e) {
+            System.out.println("数据格式不对！");
+        }
+        System.out.println(Integer.toBinaryString(123) + "B");
+        System.out.println(Integer.toHexString(123) + "H");
+        System.out.println(Integer.toOctalString(123) + "O");
+    }
+}
+```
+
+
+
+练习：
+
+- 编写一个方法，返回一个double型的二维数组，数组中的元素通过解析字符串参数获得。如字符串参数："1,2;3,4,5;6,7,8"
+
+  对应的数组为：
+
+  d[0, 0] = 1.0	d[0, 1] = 2.0
+
+  d[1, 0] = 3.0	d[1, 1] = 4.0	d[1, 2] = 5.0
+
+  d[2, 0] = 6.0	d[2, 1] = 7.0	d[2, 2] = 8.0
+
+```java
+public class ArrayParser {
+    public static void main(String[] agrs) {
+        String s = "1,2;3,4,5;6,7,8";
+        double[][] d;
+        String[] sFirst = s.split(";");
+        d = new double[sFirst.length][];
+        for(int i = 0; i < sFirst.length; i++) {
+            String[] sSencond = sFirst[i].split(",");
+            d[i] = new double[sSencond.length];
+            for(int j = 0; j < sSencond.length; j++) {
+                d[i][j] = Double.parseDouble(sSencond[j]);
+            }
+        }
+
+        for(int i = 0; i < d.length; i++) {
+            for(int j = 0; j < d[i].length; j++) {
+                System.out.print(d[i][j] + " ");
+            }
+            System.out.println();
+        }
+    }
+}
+```
+
+
+
+### 4.04 Math类 和 File类
+
+#### Math类
+
+- java.lang.Math提供了一系列静态方法用于科学计算;其方法的参数和返回值类型一般为double型。
+
+  > abs 绝对值
+  >
+  > acos,asin,atan,cos,sin,tan
+  >
+  > sqrt 平方根
+  >
+  > pow(double a, double b) a的b次幂
+  >
+  > log 自然对数(以e为底的对数)
+  >
+  > exp e为底指数
+  >
+  > max(double a, double b)
+  >
+  > min(double a, double b)
+  >
+  > random() 返回0.0到1.0的随机数
+  >
+  > long round(double a) double型的数据a转换为long型(四舍五入)
+  >
+  > toDegrees(double angrad) 弧度->角度
+  >
+  > toRadians(double angdeg) 角度->弧度
+
+```java
+public class Test {
+    public static void main(String[] agrs) {
+        double a = Math.random();
+        double b = Math.random();
+        System.out.println(Math.sqrt(a * a + b * b));
+        System.out.println(Math.pow(a, 8));
+        System.out.println(Math.round(b));
+        System.out.println(Math.log(Math.pow(Math.E, 15)));
+        double d = 60.0;
+        double r = Math.PI/4;
+        System.out.println(Math.toRadians(d));
+        System.out.println(Math.toDegrees(r));
+    }
+}
+```
+
+
+
+#### File类
+
+- java.io.File类代表系统文件名(路径和文件名)
+
+- File类的常见构造方法：
+
+  - public File(String pathname)
+
+    以pathname为路径创建File对象，如果pathname是相对路径，则默认的当前路径在系统属性user.dir中存储
+
+  - public File(String parent, String Child)
+
+    以parent为父路径，child为子路经创建File对象
+
+- File的静态属性String separator存储了当前系统的路径分隔符
+
+
+
+##### FIle类常用方法
+
+- 通过File对象可以访问文件的属性
+
+  > public boolean canRead()
+  >
+  > public boolean canWrite()
+  >
+  > public boolean exists()
+  >
+  > public boolean isDirectory()
+  >
+  > public boolean isFile()
+  >
+  > public boolean isHidden()
+  >
+  > public long lastModified()  返回上次修改时间
+  >
+  > public long length()
+  >
+  > public String getName()
+  >
+  > public String getPath()
+
+- 通过File创建空文件或目录(在该对象所指的文件或目录不存在的情况下)
+
+  > public boolean createNewFile() throws IOException
+  >
+  > public boolean delete()
+  >
+  > public boolean mkdir()
+  >
+  > public boolean mkdirs()  创建在路径中的一系列目录
+
+```java
+import java.io.*;
+
+public class TestFile {
+    public static void main(String[] args) {
+        String separator = File.separator;
+        String filename = "myfile.txt";
+        String directory = "mydir1" + separator + "mydir2";
+      	//String directory = "mydir1/mydir2";
+        File f = new File(directory, filename);
+        if(f.exists()) {
+            System.out.println("文件名：" + f.getAbsolutePath());
+            System.out.println("文件大小：" + f.length());
+        } else {
+            f.getParentFile().mkdirs();
+            try{
+                f.createNewFile();
+            } catch(IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}
+```
+
+
+
+#####  练习
+
+- 编写一个程序，在命令行中以树状结构展现特定的文件夹及其子文件(夹)
+
+```java
+import java.io.*;
+
+public class FileList {
+    public static void main(String[] args) {
+        if(args.length != 1) {
+            System.out.println("file pathname error");
+        } else {
+            File f = new File(args[0]);
+            if(f.exists() == false) {
+                System.out.println("the file is not exist");
+            } else {
+                System.out.println(f.getName());
+                tree(f, 1);
+            }
+        }
+    }
+
+    //level代表目录层次
+    private static void tree(File f, int level) {
+        String preStr = "";
+        //显示目录层次效果
+        for(int i = 0; i < level; i++) {
+            preStr += "  ";
+        }
+        File[] childs = f.listFiles();
+        for(int i = 0; i < childs.length; i++) {
+            System.out.println(preStr + childs[i].getName());
+            if(childs[i].isDirectory()) {
+                tree(childs[i], level + 1);
+            }
+        }
+    }
+}
+```
+
+
+
+### 4.05 Enum枚举类型
+
+- 枚举类型：
+  - 只能够取特定值中的一个
+  - 使用enum关键字
+  - 是java.lang.Enum类型
+
+```java
+public class TestEnum {
+    public enum MyColor { red, green, blue };
+    
+    public static void main(String[] args) {
+        MyColor m = MyColor.red;
+        switch(m) {
+            case red:
+                System.out.println("red");
+                break;
+            case green:
+                System.out.println("green");
+                break;
+            default:
+                System.out.println("default");
+        }
+        System.out.println(m);
+    }
+}
+```
+
+
+
+
+
+## 5. 容器
+
+### 5.01 容器的概念
+
+- 容器：Java API 所提供的一系列类的实例，用于在程序中存放对象
+
+
+
+### 5.02 容器 API
+
+- J2SDK所提供的容器API位于java.util包内
+- 容器API的类图结构：
+
+![幻灯片32](/home/ryokai/git_projects/myjavanote.github.io/幻灯片32.jpg)
+
+- Collection 接口定义了存取一组对象的方法，其自接口Set和List分别定义了存储方式
+  - Set中的数据对象没有顺序且不可以重复（重复即指对象之间相互equals）
+  - List中的数据对象有顺序且可以重复
+- Map接口定义了存储“键(key)—值(value)映射对”的方法
+
+
+
+### 5.03 Collection 接口
+
+- Collection 接口中所定义的方法：
+
+  >int size();
+  >
+  >boolean isEmpty();
+  >
+  >void clear();
+  >
+  >boolean contains(Object element);  是否包含(equals)某个对象
+  >
+  >boolean add(Object element);
+  >
+  >boolean remove(Object element);
+  >
+  >Iterator iterator();  返回一个实现了Iterator接口的对象
+  >
+  >boolean containsAll(Collection c);  是否包含(equals)一个集合中所有元素
+  >
+  >boolean addAll(Collection c);
+  >
+  >boolean removeAll(Collection c);
+  >
+  >boolean retainAll(Collection c);  求当前集合类和传进来的集合类的交集
+  >
+  >Object[] toArray();  转换为对象类型的数组
+
+```java
+import java.util.*;
+
+public class Test {
+    public static void main(String[] args) {
+        Collection c = new ArrayList();
+      	//可以放入不同的对象，但不能放入基础数据类型
+        c.add("hello");
+        c.add(new Integer(100));
+        System.out.println(c.size());
+        System.out.println(c);	//打印出了c.toString()
+    }
+}
+```
+
+输出结果：
+
+> 2
+> [hello, 100]
+
+
+
+- 容器类对象在调用remove、contains等方法时需要比较对象是否相等，这会涉及到对象类型的equals方法和hashCode方法，对于自定义的类型，需要重写equals和hashCode方法以实现自定义的对象相等规则
+  - 注意：相等的对象应具有相等的hash codes
+
+
+```java
+import java.util.*;
+
+public class BasicContainer {
+    public static void main(String[] args) {
+        Collection c = new HashSet();
+        c.add("hello");
+        c.add(new Name("f1", "l1"));
+        c.add(new Integer(100));
+        c.remove("hello");
+        c.remove(new Integer(100));
+        //未重写Name类equals方法时，此句输出false
+        System.out.println(c.remove(new Name("f1", "l1")));
+        System.out.println(c);
+    }
+}
+
+class Name {
+    private String firstName, lastName;
+    public Name(String firstName, String lastName) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+    }
+    public String getFirstName() {
+        return firstName;
+    }
+    public String getLastName() {
+        return lastName;
+    }
+    public String toString() {
+        return firstName + " " + lastName;
+    }
+
+    public boolean equals(Object obj) {
+        if(obj instanceof Name) {
+            Name name = (Name) obj;
+            return (firstName.equals(name.firstName)) && (lastName.equals(name.lastName));
+        }
+        return super.equals(obj);
+    }
+    public int hashCode() {
+        return firstName.hashCode();
+    }
+}
+```
+
+
+
+ ### 5.04  Iterator 接口
+
+- 所有实现了Collection接口的容器类都有一个iterator方法用以返回一个实现了Iterator接口的对象
+
+- Iterator对象称作迭代器，用以方便的实现对容器内元素的遍历操作
+
+- Iterator接口定义了如下方法：
+
+  >boolean hasNext();	//判断游标右边是否有元素
+  >
+  ><u>E</u> next();			//返回游标右边的元素并将游标移动到下一个位置(jdk1.4及以前返回值为Object)
+  >
+  >void remove();		//删除游标左面的元素，在执行完next之后该操作只能执行一次
+
+```java
+import java.util.*;
+
+public class Test {
+    public static void main(String[] args) {
+        Collection c = new HashSet();
+        c.add(new Name("f1", "l1"));
+        c.add(new Name("f2", "l2"));
+        c.add(new Name("f3", "l3"));
+        Iterator i = c.iterator();
+        while(i.hasNext()) {
+            Name n = (Name)i.next();
+            System.out.print(n.getFirstName() + "  ");
+        }
+    }
+}
+
+class Name {
+    private String firstName, lastName;
+    public Name(String firstName, String lastName) {
+        this.firstName = firstName;
+        this.lastName = lastName;
+    }
+    public String getFirstName() {
+        return firstName;
+    }
+    public String getLastName() {
+        return lastName;
+    }
+    public String toString() {
+        return firstName + " " + lastName;
+    }
+}
+```
+
+输出结果：
+
+> f3  f1  f2
+
+
+
+- Iterator对象的remove方法是在迭代过程中删除元素的唯一的安全方法
+
+  ```java
+  Collection c = new HashSet();
+  c.add(new Name("fff1", "lll1"));
+  c.add(new Name("f2", "l2"));
+  c.add(new Name("fff3", "lll3"));
+  for(Iterator i = c.iterator(); i.hasNext();) {
+  	Name name = (Name)i.next();
+    	if(name.getFirstName().length() < 3) {
+        	//如果换成c.remove(name);会产生例外
+        	i.remove();
+    	}
+  }
+  System.out.println(c);
+  ```
+
+  输出结果：
+
+  > [fff3 lll3, fff1 lll1]	
