@@ -2934,7 +2934,7 @@ class Name {
 
 
 
- ### 5.04  Iterator 接口
+ ### 5.04 Iterator 接口
 
 - 所有实现了Collection接口的容器类都有一个iterator方法用以返回一个实现了Iterator接口的对象
 
@@ -3009,3 +3009,220 @@ class Name {
   输出结果：
 
   > [fff3 lll3, fff1 lll1]	
+
+
+
+### 5.05 EnhancedFor(JDK1.5 增强的for循环)
+
+- 增强的for循环对于遍历array或Collection的时候相当简便
+
+```java
+import java.util.*;
+
+public class EnhancedFor {
+    public static void main(String[] args) {
+        int[] arr = {1, 2, 3, 4, 5};
+        //将arr中所有元素按顺序赋值给i
+        for(int i : arr) {
+            System.out.println(i);
+        }
+
+        Collection c = new ArrayList();
+        c.add(new String("aaa"));
+        c.add(new String("bbb"));
+        c.add(new String("ccc"));
+        //将c中所有元素按顺序赋值给o
+        for(Object o : c) {
+            System.out.println(o);
+        }
+    }
+}
+```
+
+- 缺陷：
+
+  - 数组：
+    - 不能方便的访问下标值
+  - 集合：
+    - 与使用Iterator相比，不能方便的删除集合中的内容
+    - 在内部也是调用Iterator
+
+- 总结：
+
+  除了简单遍历并读出其中的内容外，不建议使用增强的for循环
+
+
+
+### 5.06 Set 接口
+
+- Set接口是Collection的子接口，Set接口没有提供额外的方法，但实现Set接口的容器类中的元素是没有有顺序的，而且不可以重复
+- Set容器可以与数学中“集合”的概念相对应
+- J2SDK API中所提供的Set容器类有HashSet，TreeSet等
+
+
+
+```java
+public static void main(String[] args) {
+  	Set s = new HashSet();
+  	s.add("hello");
+  	s.add("world");
+  	//这里的Name类重写了equals方法
+  	s.add(new Name("f1", "f2"));
+  	s.add(new Integer(100));
+  	//相同元素不会被加入
+  	s.add(new Name("f1", "f2"));
+  	//相同元素不会被加入
+  	s.add("hello");
+  	System.out.println(s);
+}
+```
+
+输出结果：
+
+> [100, hello, world, f1 f2]
+
+
+
+```java
+import java.util.*;
+
+public class Test {
+    public static void main(String[] args) {
+        Set s1 = new HashSet();
+        Set s2 = new HashSet();
+		
+      	//添加元素时，通过hash算法在集合内部进行排序保存
+        s1.add("a");
+        s1.add("b");
+        s1.add("c");
+
+        s2.add("d");
+        s2.add("a");
+        s2.add("b");
+
+        //Set和List容器类都具有Constructor(Collection c)
+        //构造方法用以初始化容器类
+        Set sn = new HashSet(s1);
+        sn.retainAll(s2);
+        Set su = new HashSet(s1);
+        su.addAll(s2);
+      
+        System.out.println(sn);
+        System.out.println(su);
+    }
+}
+```
+
+输出结果：
+
+> [a, b]
+> [a, b, c, d]
+
+
+
+### 5.07 List 接口
+
+- List接口是Collection的子接口，实现List接口的容器类中的元素是有顺序的	，而且可以重复
+- List容器中的元素都对应一个整数型的序号记载其在容器中的位置，可以根据序号存取容器中的元素
+- J2SDk所提供的List容器类有ArrayList，LinkedList等
+
+> <u>E</u> get(int index);	
+>
+> <u>E</u> set(int index, Object element);	//返回值为该位置上原来的元素
+>
+> void add(int index, Object element);
+>
+> <u>E</u> remove(int index);
+>
+> int indexOf(Object o);
+>
+> int lastIndexOf(Object o);
+
+
+
+```java
+import java.util.*;
+
+public class Test {
+    public static void main(String[] args) {
+        List l1 = new LinkedList();
+        for(int i = 0; i <= 5; i++) {
+            l1.add("a" + i);
+        }
+        System.out.println(l1);
+        l1.add(3, "a100");
+        System.out.println(l1);
+        l1.set(6, "a200");
+        System.out.println(l1);
+        System.out.print((String)l1.get(2) + " ");
+        System.out.println(l1.indexOf("a3"));
+        l1.remove(1);
+        System.out.println(l1);
+    }
+}
+```
+
+输出结果：
+
+> [a0, a1, a2, a3, a4, a5]
+> [a0, a1, a2, a100, a3, a4, a5]
+> [a0, a1, a2, a100, a3, a4, a200]
+> a2 4
+> [a0, a2, a100, a3, a4, a200]
+
+
+
+#### List 常用算法
+
+- 类 **java.util.Collections** 提供了一些静态方法实现了基于List容器的一些常用算法
+
+  > void sort(List)	对List容器内的元素排序
+  >
+  > void shuffle(List)	对List容器内的对象进行随机排序
+  >
+  > void reverse(List)	对List容器内的对象进行逆序排列
+  >
+  > void fill(List, Object)	用一个特定的对象重写整个List容器
+  >
+  > void copy(LIst dest, List src)	将src List容器内容拷贝到dest List容器
+  >
+  > int binarySearch(List, Object)	对于顺序的List容器，采用折半查找的方法查找特定对象
+
+```java
+import java.util.*;
+
+public class Test {
+    public static void main(String[] args) {
+        List l1 = new LinkedList();
+        List l2 = new LinkedList();
+        for(int i = 0; i < 10; i++) {
+            l1.add("a" + i);
+        }
+        System.out.println(l1);
+        //随机排序
+        Collections.shuffle(l1);
+        System.out.println(l1);
+        //逆序
+        Collections.reverse(l1);
+        System.out.println(l1);
+        //排序
+        Collections.sort(l1);
+        System.out.println(l1);
+        //折半查找
+        System.out.println(Collections.binarySearch(l1, "a5"));
+    }
+}
+```
+
+输出结果：
+
+> [a0, a1, a2, a3, a4, a5, a6, a7, a8, a9]
+> [a3, a8, a5, a7, a0, a1, a9, a6, a4, a2]
+> [a2, a4, a6, a9, a1, a0, a7, a5, a8, a3]
+> [a0, a1, a2, a3, a4, a5, a6, a7, a8, a9]
+> 5
+
+
+
+### 5.08 Comparable
+
