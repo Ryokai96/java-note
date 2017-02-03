@@ -1,7 +1,5 @@
 # JavaSE 学习笔记
 
-Tags: Java JavaSE 学习
-
 [TOC]
 
 ## 1. 面向对象
@@ -3126,7 +3124,7 @@ public class Test {
 - List容器中的元素都对应一个整数型的序号记载其在容器中的位置，可以根据序号存取容器中的元素
 - J2SDk所提供的List容器类有ArrayList，LinkedList等
 
-> <u>E</u> get(int index);	
+  > <u>E</u> get(int index);
 >
 > <u>E</u> set(int index, Object element);	//返回值为该位置上原来的元素
 >
@@ -3224,5 +3222,1013 @@ public class Test {
 
 
 
-### 5.08 Comparable
+### 5.08 Comparable 接口
 
+- 所有可以排序的类都实现了**java.lang.Comparable**接口，Comparable接口中只有一个方法
+
+  > public int compareTo(<u>T</u> o);
+
+  - 返回0表示 this == o
+  - 返回正数表示 this > o
+  - 返回负数表示 this < o
+
+- 实现了Comparable接口的类通过实现compareTo方法从而确定该类对象的排序方式
+
+- 改写Name类让其实现Comparable接口：
+
+  ```java
+  import java.util.*;
+
+  public class Test {
+      public static void main(String[] args) {
+          List l1 = new LinkedList();
+          l1.add(new Name("Jone", "Banks"));
+          l1.add(new Name("PhotoShop", "Adobe"));
+          l1.add(new Name("Java", "Oracle"));
+          System.out.println(l1);
+          Collections.sort(l1);
+          System.out.println(l1);
+      }
+  }
+
+  class Name implements Comparable {
+      private String firstName, lastName;
+      public Name(String firstName, String lastName) {
+          this.firstName = firstName;
+          this.lastName = lastName;
+      }
+      public String getFirstName() {
+          return firstName;
+      }
+      public String getLastName() {
+          return lastName;
+      }
+      public String toString() {
+          return firstName + " " + lastName;
+      }
+
+      public boolean equals(Object obj) {
+          if(obj instanceof Name) {
+              Name name = (Name) obj;
+              return (firstName.equals(name.firstName)) && (lastName.equals(name.lastName));
+          }
+          return super.equals(obj);
+      }
+      public int hashCode() {
+          return firstName.hashCode();
+      }
+
+      public int compareTo(Object o) {
+          Name n = (Name)o;
+          int lastCmp = lastName.compareTo(n.lastName);
+          return (lastCmp != 0 ? lastCmp : firstName.compareTo(n.firstName));
+      }
+  }
+  ```
+
+  输出结果：
+
+  > [Jone Banks, PhotoShop Adobe, Java Oracle]
+  > [PhotoShop Adobe, Jone Banks, Java Oracle]
+
+
+
+
+### 5.09 如何选择数据结构
+
+- 衡量标准：读的效率和改的效率
+  - Array 读快改慢
+  - Linked 改快读慢
+  - Hash 两者之间
+
+
+
+### 5.10 Map 接口
+
+- 实现Map接口的类用来存储 键—值(key—value) 对
+- Map接口的实现类有HashMap和TreeMap等
+- Map类中存储的 键—值 对通过键来标识，所以键值不能重复
+
+  > Object put(Object key, Object value);//返回的是原本的value
+>
+> Object get(Object key);
+>
+> Object remove(Object key);
+>
+> boolean containsKey(Object key);	//是否包含key
+>
+> boolean containsValue(Object value);	//是否包含value
+>
+> int size();
+>
+> boolean isEmpty();
+>
+> void putAll(Map t);
+>
+> void clear();
+
+
+
+- TestMap.java:
+
+```java
+import java.util.*;
+
+public class TestMap {
+    public static void main(String[] args) {
+        Map m1 = new HashMap();
+        Map m2 = new TreeMap();
+        m1.put("one", new Integer(1));
+        m1.put("two", new Integer(2));
+        m1.put("three", new Integer(3));
+        m2.put("A", new Integer(1));
+        m2.put("B", new Integer(2));
+        System.out.println(m1.size());
+        System.out.println(m1.containsKey("one"));
+        System.out.println(m2.containsValue(new Integer(1)));
+        if(m1.containsKey("two")) {
+          	//Map.get()方法返回的是Object类型的对象，所以要强制类型转换
+            int i = ((Integer)m1.get("two")).intValue();
+            System.out.println(i);
+        }
+        Map m3 = new HashMap(m1);
+        m3.putAll(m2);
+        System.out.println(m3);
+    }
+}
+```
+
+输出结果：
+
+> 3
+> true
+> true
+> 2
+> {A=1, B=2, two=2, three=3, one=1}
+
+
+
+#### Auto-boxing/unboxing(自动打包、解包)
+
+- 在合适的时机自动打包、解包
+  - 自动将基础类型转换为对象(打包boxing)
+  - 自动将对象转换为基础类型(解包unboxing)
+- 上面的TestMap.java也可写为：
+
+```java
+import java.util.*;
+
+public class TestMap {
+    public static void main(String[] args) {
+        Map m1 = new HashMap();
+        Map m2 = new TreeMap();
+        m1.put("one", 1);
+        m1.put("two", 2);
+        m1.put("three", 3);
+        m2.put("A", 1);
+        m2.put("B", 2);
+        System.out.println(m1.size());
+        System.out.println(m1.containsKey("one"));
+        System.out.println(m2.containsValue(1));
+        if(m1.containsKey("two")) {
+            //Integer对象才能自动解包成int类型
+            int i = (Integer)m1.get("two");
+            System.out.println(i);
+        }
+        Map m3 = new HashMap(m1);
+        m3.putAll(m2);
+        System.out.println(m3);
+    }
+}
+```
+
+
+
+TestArgsWords.java
+
+```java
+import java.util.*;
+
+public class TestArgsWords {
+    private static final Integer ONE = 1;
+
+    public static void main(String[] args) {
+        Map m = new HashMap();
+        for(int i = 0; i < args.length; i++) {
+            Integer freq = (Integer)m.get(args[i]);
+            m.put(args[i],(freq == null ? ONE : (freq + 1)));
+        }
+        System.out.println(m.size() + " distinct words detected:");
+        System.out.println(m);
+    }
+}
+```
+
+输入及输出：
+
+> java TestArgsWords aaa aa bc ccc aaa ccc ccc
+> 4 distinct words detected:
+> {aaa=2, aa=1, bc=1, ccc=3}
+
+
+
+### 5.11 泛型
+
+- 起因：JDK1.4及以前类型不明确
+  - 装入集合的类型都被当作Object对待，从而失去自己的实际类型
+  - 从集合中取出时往往需要转型，效率低，容易产生错误
+- 解决方法：
+  - 在定义集合的时候同时定义集合中对象的类型
+    - 可以在定义Collection的时候指定
+    - 也可以在循环时用Iterator指定
+- 好处：增强程序的可读性和稳定性
+
+
+
+BasicGeneric.java
+
+```java
+import java.util.*;
+
+public class BasicGeneric {
+    public static void main(String[] args) {
+        //指定List中的对象只能为String类型
+        List<String> c = new ArrayList<String>();
+        c.add("aaa");
+        c.add("bbb");
+        c.add("ccc");
+        for(int i = 0; i < c.size(); i++) {
+            String s = c.get(i);
+            System.out.println(s);
+        }
+
+        Collection<String> c2 = new HashSet<String>();
+        c2.add("aaa");
+        c2.add("bbb");
+        c2.add("ccc");
+        for(Iterator<String> it = c2.iterator(); it.hasNext();) {
+            String s = it.next();
+            System.out.println(s);
+        }
+    }
+}
+
+class MyName implements Comparable<MyName> {
+    int age;
+
+    public int compareTo(MyName mn) {
+        if(this.age > mn.age) {
+            return 1;
+        } else if(this.age < mn.age) {
+            return -1;
+        } else {
+            return 0;
+        }
+    }
+}
+```
+
+
+
+TestMap2.java
+
+```java
+import java.util.*;
+
+public class TestMap2 {
+    public static void main(String[] args) {
+        Map<String, Integer> m1 = new HashMap<String, Integer>();
+        m1.put("one", 1);
+        m1.put("two", 2);
+        m1.put("three", 3);
+
+        System.out.println(m1.size());
+        System.out.println(m1.containsKey("one"));
+
+        if(m1.containsKey("two")) {
+            int i = m1.get("two");
+            System.out.println(i);
+        }
+    }
+}
+```
+
+
+
+TestArgsWords2.java
+
+```java
+import java.util.*;
+
+public class TestArgsWords2 {
+    private static final int ONE = 1;
+
+    public static void main(String[] args) {
+        Map<String, Integer> m = new HashMap<String, Integer>();
+        for(int i = 0; i < args.length; i++) {
+            if(!m.containsKey(args[i])) {
+                m.put(args[i], ONE);
+            } else {
+                int freq = m.get(args[i]);
+                m.put(args[i], freq + 1);
+            }
+        }
+
+        System.out.println(m.size() + " distinct words detected:");
+        System.out.println(m);
+    }
+}
+```
+
+
+
+## 6. IO
+
+### 6.01 IO初步
+
+- 在Java程序中，对于数据的输入/输出操作以“流”(stream)方式进行，jdk提供了各种各样的“流”类，用以获取不同种类的数据，程序中通过标准的方法输入或输出数据
+
+
+
+#### 输入/输出流的分类
+
+- 输入/输出都是相对于程序而言
+
+
+- java.io包中定义了对各流类型(类或抽象类)来实现输入/输出功能，可以从不同的角度对其进行分类：
+
+  - 按数据流的方向不同可以分为输入流和输出流
+  - 按处理数据单位不同可以分为字节流和字符流
+  - 按照功能不同可以分为节点流和处理流
+
+- JDK所提供的所有流类型位于包java.io内都分别继承自以下四种抽象流类型
+
+  |      |     字节流      |  字符流   |
+  | :--: | :----------: | :----: |
+  | 输入流  | InputStream  | Reader |
+  | 输出流  | OutputStream | Writer |
+
+
+
+#### 节点流和处理流
+
+- 节点流为可以从一个特定的数据源(节点)读写数据(如：文件，内存)
+
+- 节点流类型：
+
+  |      类型       |                  字符流                  |                   字节流                    |
+  | :-----------: | :-----------------------------------: | :--------------------------------------: |
+  |   File(文件)    |      FileReader<br />FileWriter       |  FileInputStream<br />FileOutputStream   |
+  | Memory Array  | CharArrayReader<br  />CharArrayWriter | ByteArrayInputStream<br />ByteArrayOutputStream |
+  | Memory String |    StringReader<br />StringWriter     |                    —                     |
+  |   Pipe(管道)    |     PipedReader<br />PipedWriter      | PipedInputStream<br />PipedOutputStream  |
+
+- 处理流是“连接”在已存在的流(节点流或处理流)之上，通过对数据的处理为程序提供更为强大的读写功能
+
+- 处理流类型：
+
+  |                  处理类型                  |                   字符流                    |                   字节流                    |
+  | :------------------------------------: | :--------------------------------------: | :--------------------------------------: |
+  |               Buffering                |    BufferedReader<br />BufferedWriter    | BufferedInputStream<br />BufferedOutputStream |
+  |               Filtering                |      FilterReader<br />FilterWriter      | FilterInputStream<br />FilterOutputStream |
+  | Converting between bytes and character | InputStreamReader<br />OutputStreamWriter |                    —                     |
+  |          Object Serialization          |                    —                     | ObjectInputStream<br />ObjectOutputStream |
+  |            Date conversion             |                    —                     |  DateInputStream<br />DateOutputStream   |
+  |                Counting                |             LineNumberReader             |          LineNumberInputStream           |
+  |             Peeking ahead              |              PushbackReader              |           PushbackInputStream            |
+  |                Printing                |               PrintWriter                |               PrintStream                |
+
+  ​
+
+
+
+#### InputStream
+
+- 继承自InputStream的流都是用于向程序中输入数据，且数据的单位为字节(8bit)
+
+- InputStream的基本方法
+
+  > //读取一个字节并以整数的形式返回(0~255)
+  >
+  > //如果返回-1则已到输入流的末尾
+  >
+  > int read() throws IOException
+
+  ​
+
+  > //读取一系列字节并存储到一个数组buffer
+  >
+  > //返回实际读取的字节数，如果读取前已到输入流的末尾则返回-1
+  >
+  > int read(byte[] buffer) throws IOException
+
+  ​
+
+  > //读取length个字节，并从offset位置开始存储到一个字节数组buffer
+  >
+  > //返回实际读取的字节数，如果读取前已到输入流的末尾返回-1
+  >
+  > int read(byte[] buffer, int offset, int length) throws IOException
+
+  ​
+
+  > //关闭流释放内存资源
+  >
+  > void close() throws IOException
+
+  ​
+
+  > //跳过n个字节不读，返回实际跳过的字节数
+  >
+  > long skip(long n) throws IOException
+
+  ​
+
+
+
+#### OutputStream
+
+- 继承自OutputStream的流是用于程序中输出数据，且数据的单位为字节(8bit)
+
+- OutputStream的基本方法
+
+  > //向输出流写入一个字节数据，该字节数据为参数b的低8位
+  >
+  > void write(int b) throws IOException
+
+  ​
+
+  > //将一个字节类型的数组中的数据写入输出流
+  >
+  > int write(byte[] b) throws IOException
+
+  ​
+
+  > //将一个字节类型的数组中的从指定位置(off)开始的len个字节写入到输出流
+  >
+  > void write(byte[] b, int off, int len) throws IOException
+
+  ​
+
+  > //关闭流释放内存资源
+  >
+  > void close() throws IOException
+
+  ​
+
+  > //将输出流中缓冲的数据全部写出到目的地
+  >
+  > void flush() throws IOException
+
+  ​
+
+
+
+#### Reader
+
+- 继承自Reader的流都是用于向程序中输入数据，且数据的单位为字符(两个字节 16bit)
+
+- Reader的基本方法
+
+  > //读取一个字符并以整数的形式返回(0~255)
+  >
+  > //如果返回-1则已到输入流的末尾
+  >
+  > int read() throws IOException
+
+  ​
+
+  > //读取一系列字符并存储到一个数组cbuf
+  >
+  > //返回实际读取的字符数，如果读取前已到输入流的末尾则返回-1
+  >
+  > int read(char[] cbuf) throws IOException
+
+  ​
+
+  > //读取length个字节，并从offset位置开始存储到一个数组cbuf
+  >
+  > //返回实际读取的字符数，如果读取前已到输入流的末尾返回-1
+  >
+  > int read(char[] cbuf, int offset, int length) throws IOException
+
+  ​
+
+  > //关闭流释放内存资源
+  >
+  > void close() throws IOException
+
+  ​
+
+  > //跳过n个字符不读，返回实际跳过的字符数
+  >
+  > long skip(long n) throws IOException
+
+  ​
+
+
+
+#### Writer
+
+- 继承自Writer的流都是用于程序中输出数据，且数据的单位为字符(16 bit)
+
+- Writer的基本方法
+
+  > //向输出流中写入一个字符数据，该字符数据为参数b的低16位
+  >
+  > void write(int c) throws IOException
+
+  ​
+
+  > //将一个字符类型的数组中的数据写入输出流
+  >
+  > void write(char[] cbuf) throws IOException
+
+  ​
+
+  > //将一个字符类型的数组中的从指定位置(offset)开始的length个字符写入到输出流
+  >
+  > void write(char[] cbuf, int offset, int length) throws IOException
+
+  ​
+
+  > //将一个字符串中的字符写入到输出流
+  >
+  > void write(String string) throws IOException
+
+  ​
+
+  > //将一个字符串从offset开始的length个字符写入到输出流
+  >
+  > void write(String string, int offset, int length) throws IOException
+
+  ​
+
+  > //关闭流释放内存资源
+  >
+  > void close() throws IOException
+
+  ​
+
+  > //将输出流中缓存的数据全部写出到目的地
+  >
+  > void flush() throws IOException
+
+
+
+### 6.02 FileInputStream & FileOutputStream
+
+- FileInputStream和FileOutputStream分别继承自InputStream和OutputStream用于向文件中输入和输出字节
+
+- FileInputStream和FileOutputStream的常用构造方法：
+
+  > FileInputStream(String name) throws FileNotFoundException
+  >
+  > FileInputStream(File file) throws FileNotFoundException
+  >
+  > FileOutputStream(String name) throws FileNotFoundException
+  >
+  > FileOutPutStream(File file) throws FileNotFoundException
+  >
+  > FileOutputStream(File file, boolean append) throws FileNotFoundException
+
+- FileInputStream和FileOutputStream类支持其父类InputStream和OutputStream所提供的数据读写方法
+
+- 注意：
+
+  - 在实例化FileInputStream和FileOutputStream流时要用try-catch语句以处理其可能抛出的FileNotFoundException
+  - 在读写数据时也要用try-catch语句以处理可能抛出的IOException
+  - FileNotFoundException是IOException的子类
+
+- TestFileInputStream.java:
+
+  ```java
+  import java.io.*;
+
+  public class TestFileInputStream {
+      public static void main(String[] args) {
+          int b = 0;
+          FileInputStream in = null;
+          try {
+              in = new FileInputStream(args[0]);
+          } catch (FileNotFoundException e) {
+              System.out.println("找不到指定文件");
+              System.exit(-1);
+          }
+
+          try {
+              long num = 0;
+              while((b = in.read()) != -1) {
+                  System.out.print((char) b);
+                  num ++;
+              }
+              in.close();
+              System.out.println();
+              System.out.println("共读取了 " + num + " 个字节");
+          } catch(IOException e1) {
+              System.out.println("文件读取错误");
+              System.exit(-1);
+          }
+      }
+  }
+  ```
+
+- TestFileOutputStream.java
+
+  ````java
+  import java.io.*;
+
+  public class TestFileOutputStream {
+      public static void main(String[] args) {
+          int b = 0;
+          FileInputStream in = null;
+          FileOutputStream out = null;
+          try {
+              in = new FileInputStream(args[0]);
+              out = new FileOutputStream(args[1]);
+              while((b = in.read()) != -1) {
+                  out.write(b);
+              }
+              in.close();
+              out.close();
+          } catch(FileNotFoundException e2) {
+              System.out.println("找不到指定文件");
+              System.exit(-1);
+          } catch(IOException e1) {
+              System.out.println("文件复制错误");
+              System.exit(-1);
+          }
+
+          System.out.println("文件已复制");
+      }
+  }
+  ````
+
+
+
+### 6.03 FileReader & FileWriter
+
+- TestFileReader.java
+
+  ```java
+  import java.io.*;
+
+  public class TestFileReader {
+      public static void main(String[] args) {
+          FileReader fr = null;
+          int c = 0;
+          try {
+              fr = new FileReader(args[0]);
+              int ln = 0;
+              while((c = fr.read()) != 01) {
+                  System.out.print((char)c);
+              }
+              fr.close();
+          } catch(FileNotFoundException e) {
+              System.out.println("找不到指定文件");
+          } catch(IOException e) {
+              System.out.println("文件读取错误");
+          }
+      }
+  }
+  ```
+
+- TestFileWriter.java
+
+  ```java
+  import java.io.*;
+
+  public class TestFileWriter {
+      public static void main(String[] args) {
+          FileWriter fw = null;
+          try {
+              fw = new FileWriter(args[0]);
+              for(int c = 0; c <= 50000; c++) {
+                  fw.write(c);
+              }
+              fw.close();
+          } catch(IOException e) {
+              e.printStackTrace();
+              System.out.println("文件写入错误");
+              System.exit(-1);
+          }
+      }
+  }
+  ```
+
+
+
+### 6.04 缓冲流 
+
+- 缓冲流要”套接“在相应的节点流之上，对读写的数据提供了缓冲的功能，提高了读写的效率，同时增加了一些新的方法
+
+- J2SDK提供了四种缓冲流，其常用的构造方法为：
+
+  > BufferedReader(Reader in)
+  >
+  > BufferedReader(Reader in, int size)	//size为自定义缓存区的大小
+  >
+  > BufferedWriter(Writer out)
+  >
+  > BufferedInputStream(InputStream in)
+  >
+  > BufferedInputStream(InputStream in, int size)
+  >
+  > BufferedOutputStream(OutputStream out)
+  >
+  > BufferedOutputStream(OutputStream out, int size)
+
+- 缓冲输入流支持其父类的mark和reset方法
+
+- BufferedReader提供了readLine方法用于读取一行字符串(以\r或\n分隔)
+
+- BufferedWriter提供了newLine用于写入一个行分隔符
+
+- 对于输出的缓冲流，写出的数据会先在内存中缓存，使用flush方法将会使内存中的数据立刻写出
+
+- TestBufferStream1.java
+
+  ```java
+  import java.io.*;
+
+  public class TestBufferStream1 {
+      public static void main(String[] args) {
+          try {
+              FileInputStream fis = new FileInputStream(args[0]);
+              BufferedInputStream bis = new BufferedInputStream(fis);
+              int c = 0;
+              System.out.println(bis.read());
+              System.out.println(bis.read());
+              bis.mark(100);
+              for(int i = 0; i <= 10 && (c = bis.read()) != -1; i++) {
+                  System.out.print(c + " ");
+              }
+              System.out.println();
+              //回到mark的位置
+              bis.reset();
+              for(int i = 0; i <= 10 && (c = bis.read()) != -1; i++) {
+                  System.out.print(c + " ");
+              }
+              bis.close();
+          } catch(IOException e) {
+              e.printStackTrace();
+          }
+      }
+  }
+  ```
+
+- TestBufferStream2.java
+
+  ```java
+  import java.io.*;
+
+  public class TestBufferStream2 {
+      public static void main(String[] args) {
+          try {
+              BufferedWriter bw = new BufferedWriter(new FileWriter(args[0]));
+              BufferedReader br = new BufferedReader(new FileReader(args[0]));
+              String s = null;
+              for(int i = 1; i < 100; i++) {
+                  s = String.valueOf(Math.random());
+                  bw.write(s);
+                  bw.newLine();
+              }
+              bw.flush();
+              while((s = br.readLine()) != null) {
+                  System.out.println(s);
+              }
+              bw.close();
+              br.close();
+          } catch(IOException e) {
+              e.printStackTrace();
+          }
+      }
+  }
+  ```
+
+
+
+### 6.05 转换流 
+
+- InputStreamReader和OutputStreamWriter用于字节数据到字符数据之间的转换
+
+- InputStreamReader需要和InputStream”套接“
+
+- OutputStreamWriter需要和OutputStream”套接“
+
+- 转换流在构造时可以指定其编码集合，例如：
+
+  > InputStream isr = new InputStreamReader(System.in, "ISO8859_1");
+
+- TestTransform1.java
+
+  ```java
+  import java.io.*;
+
+  public class TestTransform1 {
+      public static void main(String[] args) {
+          try {
+              OutputStreamWriter osw = new OutputStreamWriter(new FileOutputStream(args[0]));
+              osw.write("oraclejavaubuntu");
+              System.out.println(osw.getEncoding());
+              osw.close();
+              //追加写入内容
+              osw = new OutputStreamWriter(new FileOutputStream(args[0], true), "ISO8859_1");
+              osw.write("oraclejavaubuntu");
+              System.out.println(osw.getEncoding());
+              osw.close();
+          } catch(IOException e) {
+              e.printStackTrace();
+          }
+      }
+  }
+  ```
+
+- TestTransform2.java
+
+  ```java
+  import java.io.*;
+
+  public class TestTransform2 {
+      public static void main(String[] agrs) {
+          InputStreamReader isr = new InputStreamReader(System.in);
+          BufferedReader br = new BufferedReader(isr);
+          String s = null;
+          try {
+              s = br.readLine();
+              while(s != null) {
+                  if(s.equalsIgnoreCase("exit")) {
+                      break;
+                  }
+                  //变为大写字母
+                  System.out.println(s.toUpperCase());
+                  s = br.readLine();
+              }
+              br.close();
+          } catch(IOException e) {
+              e.printStackTrace();
+          }
+      }
+  }
+  ```
+
+
+
+### 6.06 数据流
+
+- DataInputStream和DataOutputStream分别继承自InputStream和OutputStream，它属于处理流，需要分别套接在InputStream和OutputStream类型的节点流上
+
+- DataInputStream和DataOutputStream提供了可以存取与机器无关的Java原始类型数据(如:int,double等)的方法
+
+- DataInputStream和DataOutputStream的构造方法为：
+  - DataInputStream(InputStream in)
+  - DataOutputStream(OutputStream out)
+
+- TestDataStream.java
+
+  ```java
+  import java.io.*;
+
+  public class TestDataStream {
+      public static void main(String[] args) {
+          ByteArrayOutputStream baos = new ByteArrayOutputStream();
+          DataOutputStream dos = new DataOutputStream(baos);
+
+          try {
+              dos.writeDouble(Math.random());
+              dos.writeBoolean(true);
+              ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
+              //available()返回可读字节数
+              System.out.println(bais.available());
+              DataInputStream dis = new DataInputStream(bais);
+              System.out.println(dis.readDouble());
+              System.out.println(dis.readBoolean());
+              dos.close();
+              dis.close();
+          } catch(IOException e) {
+              e.printStackTrace();
+          }
+      }
+  }
+  ```
+
+
+
+
+### 6.07 Print 流
+
+- PrintWriter和PrintStream都属于输出流，分别针对与字符和字节
+
+- PrintWriter和PrintStream提供了重载的print
+
+- Println方法用于多种数据类型的输出
+
+- PrintWriter和PrintStream的输出操作不会抛出异常，用户通过检测错误状态获取错误信息
+
+- PrintWriter和PrintStream有自动flush功能
+
+- PrintWriter和PrintStream常用构造方法：
+
+  > PrintWriter(Writer out)
+  >
+  > PrintWriter(Writer out, boolean autoFlush)
+  >
+  > PrintWriter(OutputStream out)
+  >
+  > PrintWriter(OutputStream out, boolean autoFlush)
+  >
+  > PrintStream(OutputStream out)
+  >
+  > PrintStream(OutputStream out, boolean autoFlush)
+
+- TestPrintStream1.java
+
+  ```java
+  import java.io.*;
+
+  public class TestPrintStream1 {
+      public static void main(String[] args) {
+          PrintStream ps = null;
+          try {
+              FileOutputStream fos = new FileOutputStream(args[0]);
+              ps = new PrintStream(fos);
+          } catch (IOException e) {
+              e.printStackTrace();
+          }
+          if(ps != null) {
+              //重新分配标准输出流out为ps
+              System.setOut(ps);
+          }
+          int ln = 0;
+          for(char c = 0; c <= 60000; c++) {
+              System.out.println(c + " ");
+              if(ln++ >= 100) {
+                  System.out.println();
+                  ln =0;
+              }
+          }
+      }
+  }
+  ```
+
+- TestPrintStream2.java
+
+  ```java
+  import java.io.*;
+
+  public class TestPrintStream2 {
+      public static void main(String[] args) {
+          String filename = args[0];
+          if(filename != null) {
+              list(filename, System.out);
+          }
+      }
+
+      public static void list(String f, PrintStream fs) {
+          try {
+              BufferedReader br = new BufferedReader(new FileReader(f));
+              String s = null;
+              while((s = br.readLine()) != null) {
+                  fs.println(s);
+              }
+              br.close();
+          } catch(IOException e) {
+              fs.println("无法读取文件");
+          }
+      }
+  }
+  ```
+
+- TestPrintStream3.java
+
+  ```java
+  import java.util.*;
+  import java.io.*;
+
+  public class TestPrintStream3 {
+      public static void main(String[] args) {
+          String s = null;
+          BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+          try {
+              FileWriter fw = new FileWriter(args[0], true);
+              PrintWriter log = new PrintWriter(fw);
+              while((s = br.readLine()) != null) {
+                  if(s.equalsIgnoreCase("exit")) {
+                      break;
+                  }
+                  System.out.println(s.toUpperCase());
+                  log.println("-----");
+                  log.println(s.toUpperCase());
+                  log.flush();
+              }
+              log.println("===" + new Date() + "===");
+              log.flush();
+              log.close();
+          } catch(IOException e) {
+              e.printStackTrace();
+          }
+      }
+  }
+  ```
+
+  ​
