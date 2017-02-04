@@ -4232,3 +4232,42 @@ public class TestArgsWords2 {
   ```
 
   ​
+
+### 6.08 Object 流
+
+- 直接将Object写入或读出
+
+- TestObjectIO.java
+
+  ```java
+  import java.io.*;
+
+  public class TestObjectIO {
+      public static void main(String[] args) throws Exception {
+          T t = new T();
+          t.k = 8;
+          FileOutputStream fos = new FileOutputStream(args[0]);
+          ObjectOutputStream oos = new ObjectOutputStream(fos);
+          oos.writeObject(t);
+          oos.flush();
+          oos.close();
+
+          FileInputStream fis = new FileInputStream(args[0]);
+          ObjectInputStream ois = new ObjectInputStream(fis);
+          T tReaded = (T)ois.readObject();
+          System.out.println(tReaded.i + " " + tReaded.j + " " + tReaded.d + " " + tReaded.k);
+      }
+  }
+
+  //Serializable为标记性的接口，没有定义方法，作用为告诉编译器这个类可以序列化
+  class T implements Serializable {
+      int i = 10;
+      int j = 9;
+      double d = 2.3;
+      //transient(透明的) 修饰的变量在序列化的时候不予以考虑
+      transient int k = 15;
+  }
+  ```
+
+
+
