@@ -4424,7 +4424,6 @@ public class TestArgsWords2 {
 - 线程的状态与生命周期
 
   ```mermaid
-   %% Subgraph 线程的状态与生命周期
   graph TB
   	A((创建))-->|start| B[就绪状态]
   	B---|调度| C[运行状态]
