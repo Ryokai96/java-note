@@ -4259,7 +4259,7 @@ public class TestArgsWords2 {
       }
   }
 
-  //Serializable为标记性的接口，没有定义方法，作用为告诉编译器这个类可以序列化
+  //Serializable为标记性的接口，没有定义方法，作用为告诉编译器这个类可以序列化，Serializable有一个子接口Externalizable，这个子接口中有控制写入和输出的序列化过程的方法
   class T implements Serializable {
       int i = 10;
       int j = 9;
@@ -4269,5 +4269,325 @@ public class TestArgsWords2 {
   }
   ```
 
+
+
+
+## 7. 线程
+
+### 7.01 线程的创建
+
+- 进程：一个程序的执行
+- 线程：程序中单个顺序的流程控制称为线程
+- 一个进程中可以含有多个线程，这些线程：
+  - 分享CPU(并发的或以时间片的方式)
+  - 共享内存(如多个线程访问统一对象)
+- Java从语言级别支持多线程
+  - 如Object中wait(), notify()
+- java.lang中的类 Thread
+
+
+
+#### 线程体
+
+- 线程体---**run()**方法来实现的 (线程体的本质就是run()方法)
+- 线程启动后，系统就自动调用run()方法
+- 通常，run()方法执行一个时间较长的操作
+  - 如一个循环
+  - 显示一系列图片
+  - 下载一个文件
+
+
+
+#### 创建线程的两种方法
+
+1. 通过**继承Thread类**创建线程
+
+   ```java
+   class MyThread extends Thread {
+     	public void run() {
+         	for(int i = 0; i < 100; i++) {
+             	System.out.print(" " + i);
+         	}
+     	}
+   }
+   ```
+
+2. 通过向Thread()构造方法**传递Runnable对象**来创建线程
+
+   ```java
+   class MyTask implements Runnable {
+     	public void run() {
+         	...
+     	}
+   }
+   Thread thread = new Thread(mytask);
+   thread.start();
+   ```
+
+   ​
+
+#### 匿名类及lambda表达式
+
+- 可用匿名类来实现Runnable
+
+  ```java
+  new Thread() {
+    	public void run() {
+        	for(int i = 0; i < 10; i++) {
+            	System.out.println(i);
+        	}
+    	}
+  }.start();
+  ```
+
+- 或者用Lambda表达式(Java8以上)
+
+  ```java
+  new Thread(()->{...}).start();
+  ```
+
+  例如：
+
+  ```java
+  new Thread(()-> {
+    	System.out.println("Hello world!");
+  }).start();
+  ```
+
+  ​
+
+#### 使用多个线程
+
+- TestThread.java
+
+  ```java
+  import java.util.*;
+  import java.text.*;
+
+  class Counter implements Runnable {
+      int id;
+      Counter(int id) {
+          this.id = id;
+      }
+      public void run() {
+          int i = 0;
+          while(i++ <= 10) {
+              System.out.println("ID: " + id + "  No. " + i);
+              try {
+                  Thread.sleep(10);
+              } catch(InterruptedException e) { }
+          }
+      }
+  }
+
+  class TimeDisplay implements Runnable {
+      public void run() {
+          int i = 0;
+          while (i++ <= 3) {
+              System.out.println(new SimpleDateFormat().format(new Date()));
+              try {
+                  //40毫秒
+                  Thread.sleep(40);
+              } catch (InterruptedException e) { }
+          }
+      }
+  }
+
+  public class TestThread {
+      public static void main(String[] args) {
+          Counter c1 = new Counter(1);
+          Thread t1 = new Thread(c1);
+          Thread t2 = new Thread(c1);
+          Thread t3 = new Thread(c1);
+          Counter c2 = new Counter(2);
+          Thread t4 = new Thread(c2);
+          Thread t5 = new Thread(c2);
+          Thread t6 = new Thread(c2);
+          TimeDisplay timer = new TimeDisplay();
+          Thread t7 = new Thread(timer);
+          t1.start();
+          t2.start();
+          t3.start();
+          t4.start();
+          t5.start();
+          t6.start();
+          t7.start();
+      }
+  }
+  ```
+
+
+
+
+### 7.02 线程的控制
+
+- 线程的状态与生命周期
+
+  ```mermaid
+   %% Subgraph 线程的状态与生命周期
+  graph TB
+  	A((创建))-->|start| B[就绪状态]
+  	B---|调度| C[运行状态]
+  	D[阻塞状态]-->|阻塞解除|B
+  	C-->|致阻塞的状态|D
+  	C-->F((终止))
+  ```
+
+- 对线程的基本控制
+
+  - 线程的启动：start()
+
+  - 线程的结束：设定一个**标记变量**，以结束相应的循环及方法
+
+  - 暂时阻止线程的执行：
+
+    ```java
+    try {
+      	Thread.sleep(1000);
+    } catch (InterruptedException e) { }
+    ```
+
+- 线程的优先级
+
+  - 设定线程的优先级：
+    - setPriority(int priority)方法
+    - MIN_PRIORITY(最小优先级), MAX_PRIORITY(最大优先级), NORM_PRIORITY(普通优先级)
+
+- 线程有两种
+
+  - 普通线程(非Daemon线程)
+
+    - 在Java程序中，若还有非Daemon线程，则整个程序就不会结束
+
+  - Daemon线程(守护线程，后台线程)
+
+    - 如果普通线程结束了，则后台线程自动终止
+    - 注：垃圾回收线程是后台线程
+
+  - 使用 **setDaemon(true);** 将线程设为Daemon线程
+
+  - 例子:
+
+    ```java
+    import java.util.*;
+
+    public class TestThreadDaemon {
+        public static void main(String[] args) {
+            Thread t = new MyThread();
+            t.setDaemon(true);
+            t.start();
+
+            System.out.println("Main--" + new Date());
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            System.out.println("Main End");
+        }
+    }
+
+    class MyThread extends Thread {
+        public void run() {
+            for(int i = 0; i < 10; i++) {
+                System.out.println(i + "--" + new Date());
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+    ```
+
+  ​
+
+### 7.03 线程的同步
+
+- 同时运行的线程需要共享数据就必须考虑其他线程的状态与行为，这时就需要实现同步
+
+- Java引入了互斥锁的概念，来保证共享数据操作的完整性
+
+  - **每个对象**都对应于一个monitor(监视器)，它上面一个称为”互斥锁(lock, mutex)“的标记，这个标记用来保证在任一时刻，只能有一个线程访问该对象
+  - 关键字**synchronized**用来与对象的互斥锁联系。当调用方法时，调用线程进入对象监视器，对象监视器锁住对象，在对象被锁时，其他线程不能进入方法，也不能进入对象定义的其他同步方法；当线程从方法返回时，监视器为对象解锁，允许下一个线程使用对象
+
+- **synchronized**的用法
+
+  - 对代码片段：
+
+    ```java
+    synchronized(对象){...}
+    ```
+
+  - 在类中创建synchronized方法
+
+    - synchronized 放在方法声明中，例如：
+
+      ````java
+      public synchronized void push(char c) {...}
+      ````
+
+    - 相当于synchronized(this)，表示整个方法为同步方法
+
+  - 当需要对某些不被synchronized修饰的方法的访问进行同步，只需要把这个方法的调用放入synchronized代码块中即可
+
+    ```java
+    synchronized(对象){...}
+    ```
+
+  - 例：SyncCounter.java
+
+    ```java
+    public class SyncCounter {
+        public static void main(String[] args) {
+            Num num = new Num();
+            Thread counter1 = new Counter(num);
+            Thread counter2 = new Counter(num);
+            for(int i = 0; i < 10; i++) {
+              	//在num对象上对testEquals()的调用被同步
+                synchronized(num) {
+                    num.testEquals();
+                }
+                try {
+                    Thread.sleep(100);
+                } catch(InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    class Num {
+        private int x = 0;
+        private int y = 0;
+      	//increase()被同步
+        synchronized void increase() {
+            x++;
+            y++;
+        }
+      	//testEquals()没有被同步
+        boolean testEquals() {
+            boolean ok = (x==y);
+            System.out.println(x + "," + y + " : " + ok);
+            return ok;
+        }
+    }
+
+    class Counter extends Thread {
+        Counter(Num num) {
+            num.increase();
+        }
+    }
+    ```
+
+  - 使用wait()方法可以释放对象锁
+
+  - 使用notify()或notifyAll()可以让等待的一个或所有线程进入就绪状态
+
+  - Java里面可以将wait和notify放在synchronized里面，是因为Java是这样处理的：
+
+    - 在synchronized代码被执行期间，线程调用对象的wait()方法，会释放对象锁标志，然后进入等待状态，然后由其它线程调用notify()或者notifyAll()方法通知正在等待的线程。
 
 
