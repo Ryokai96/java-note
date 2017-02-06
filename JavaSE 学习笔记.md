@@ -4450,7 +4450,8 @@ public class TestArgsWords2 {
 
   - 设定线程的优先级：
     - setPriority(int priority)方法
-    - MIN_PRIORITY(最小优先级), MAX_PRIORITY(最大优先级), NORM_PRIORITY(普通优先级)
+    - MIN_PRIORITY(最小优先级 1), MAX_PRIORITY(最大优先级 10), NORM_PRIORITY(普通优先级 5)
+    - 一个线程的缺省优先级是5
 
 - 线程有两种
 
@@ -4581,12 +4582,217 @@ public class TestArgsWords2 {
     }
     ```
 
-  - 使用wait()方法可以释放对象锁
+- Java使用wait()、notify()和notifyAll()方法支持线程间通信
 
-  - 使用notify()或notifyAll()可以让等待的一个或所有线程进入就绪状态
+  - 所有对象都有wait()、notify()和notifyAll()方法，因为它们是由Object类实现的，这些方法只能在同步环境中被调用
+
+    ```java
+    //一直等待，直到其他线程调用此对象的notify()或notifyAll()方法
+    public final void wait() throws InterruptedException
+    //一直等待，直到其他线程调用此对象的notify()或notifyAll()方法，或超过指定的时间量 timeout (以毫秒为单位)
+    public final void wait(long timeout) throws InterruptedException
+    //一直等待，直到其他线程调用此对象的notify()或notifyAll()方法，或超过指定的时间量 timeout*1000000+nanos (以纳秒为单位)
+    public final void wait(long timeout, int nanos) throws InterruptedException
+    //恢复一个等待线程
+    public final void notify()
+    //通知所有线程，具有最高优先级的线程获得对象的访问权
+    public final void notifyAll()
+    ```
+
+  - 在极少数情况下，等待线程会被伪装的唤醒任务唤醒（虚假唤醒），由于存在这种伪装唤醒的可能性，应该将对wait()的调用放在一个循环中，该循环会检查线程被唤醒的条件，若条件不满足，则继续等待
+
+    ```java
+    synchronized(obj) {
+      	while(<condition does not hold>) {
+          	obj.wait();
+      	}
+      	...
+    }
+    ```
 
   - Java里面可以将wait和notify放在synchronized里面，是因为Java是这样处理的：
 
     - 在synchronized代码被执行期间，线程调用对象的wait()方法，会释放对象锁标志，然后进入等待状态，然后由其它线程调用notify()或者notifyAll()方法通知正在等待的线程。
 
+  - ThreadCom.java
 
+    ```java
+    //模拟钟表声音"Tick" "Tock"
+    class TickTock {
+        String state;
+        synchronized void tick(boolean running) {
+            if(!running) {
+                state = "ticked";
+                notify();
+                return ;
+            }
+            System.out.print("Tick ");
+            state = "ticked";
+            //tick()通知tock()
+            notify();
+            try {
+                while(!state.equals("tocked")){
+                    //tick()等待tock()
+                    wait();
+                }
+            } catch(InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        synchronized void tock(boolean running) {
+            if(!running) {
+                state = "tocked";
+                notify();
+                return;
+            }
+            System.out.println("Tock");
+            state = "tocked";
+            //tock()通知tick()
+            notify();
+            try {
+                while(!state.equals("ticked")) {
+                    //tock()等待tick()
+                    wait();
+                }
+            } catch(InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    class MyThread implements Runnable {
+        Thread thrd;
+        TickTock ttOb;
+
+        MyThread(String name, TickTock tt) {
+            //分配新的Thread对象，将this作为其运行对象，将name作为其名称
+            thrd = new Thread(this, name);
+            ttOb = tt;
+            thrd.start();
+        }
+
+        public void run() {
+            if(thrd.getName().compareTo("Tick") == 0) {
+                for(int i = 0; i < 5; i++) {
+                    ttOb.tick(true);
+                }
+                ttOb.tick(false);
+            } else {
+                for(int i = 0; i < 5; i++) {
+                    ttOb.tock(true);
+                }
+                ttOb.tock(false);
+            }
+        }
+    }
+
+    class ThreadCom {
+        public static void main(String[] args) {
+            TickTock tt = new TickTock();
+            MyThread mt1 = new MyThread("Tick", tt);
+            MyThread mt2 = new MyThread("Tock", tt);
+
+            try {
+                //join()方法用来合并线程，即等待该线程终止，再恢复当前线程的运行
+                mt1.thrd.join();
+                mt2.thrd.join();
+            } catch(InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+    ```
+
+- 死锁：一个线程等待另一个线程，而后者又在等待前者，因此两个线程都被挂起，相互等待，谁也执行不了
+
+- 竞争条件(race condition)：当两个(或更多个)线程尝试同时访问共享资源，但是又没有进行合适的同步时，就会发生竞争条件
+
+  例如：当一个线程增加变量的当前值时，另一个线程可能在向这个变量写入新值，如果没有同步，变量的新值取决于线程的执行顺序(是第一个线程先写入值，还是第二个线程先写入值？)。发生这样的情况，就称这两个线程在“相互竞争”
+
+
+
+
+#### 使用主线程
+
+所有的Java程序都至少有一个执行线程，名为主线程，它是程序在开始运行时自动分配给程序的。
+
+- 访问主线程，必须有一个引用主线程的Thread对象，这可以通过调用Thread的静态成员方法currentThread()来完成：
+
+  ```java
+  static Thread currentThread()
+  ```
+
+
+- UseMain.java
+
+  ```java
+  class UseMain {
+      public static void main(String[] args) {
+          Thread thrd;
+
+          thrd = Thread.currentThread();
+
+          //打印线程名称
+          System.out.println("Main thread is called: " + thrd.getName());
+          //打印线程优先级
+          System.out.println("Priority: " + thrd.getPriority());
+          
+          System.out.println();
+
+          System.out.println("Setting name and priority.\n");
+          thrd.setName("Thread #1");
+          //设置主线程优先级为 普通优先级+4 
+          thrd.setPriority(Thread.NORM_PRIORITY + 4);
+
+          System.out.println("Main thread is now called: " + thrd.getName());
+          System.out.println("Priority is now: " + thrd.getPriority());
+      }
+  }
+  ```
+
+  程序输出：
+
+  > Main thread is called: main
+  > Priority: 5
+  >
+  > Setting name and priority.
+  >
+  > Main thread is now called: Thread #1
+  > Priority is now: 9
+
+- 对于主线程上执行的操作，要特别小心
+
+  例如：在UseMain.java的main()末尾添加如下代码
+
+  ```java
+  try {
+    	thrd.join();
+  } catch(InterruptedException e) {
+    	e.printStackTrace();
+  }
+  ```
+
+  那么，程序永远不会终止，因为它会一直等待主线程结束
+
+
+
+
+
+## 8. 网络编程
+
+### 8.01 网络基础
+
+- TCP/IP参考模型：
+
+  |   应用层    |
+  | :------: |
+  |   传输层    |
+  |   网络层    |
+  | 物理+数据链路层 |
+
+- IP(Internet Protool)：提供了独一无二的IP地址
+
+- TCP(transmission control protool)：专门设计用于在不可靠的因特网上提供可靠的、端到端的字节流通信的协议。它是一种面向连接的协议。TCP连接是字节流而非报文流。TCP协议可靠，但是速度慢
+
+- UDP(user data protool)：UDP向应用程序提供了一种发送封装的原始IP数据报的方法、并且发送时无需建立连接。是一种不可靠的连接(会产生丢包)，但是速度快
