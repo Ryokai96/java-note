@@ -4796,3 +4796,558 @@ public class TestArgsWords2 {
 - TCP(transmission control protool)：专门设计用于在不可靠的因特网上提供可靠的、端到端的字节流通信的协议。它是一种面向连接的协议。TCP连接是字节流而非报文流。TCP协议可靠，但是速度慢
 
 - UDP(user data protool)：UDP向应用程序提供了一种发送封装的原始IP数据报的方法、并且发送时无需建立连接。是一种不可靠的连接(会产生丢包)，但是速度快
+
+
+
+### 8.02 Socket
+
+- 两个Java应用程序可通过一个双向的网络通信连接实现数据交换，这个双向链路的一端称为一个Socket
+
+- Socket通常用来实现client-server连接
+
+- java.net包中定义的两个类Socket和ServerSocket，分别用来实现双向连接的client和server端
+
+- 建立连接时所需的寻址信息为远程计算机的IP地址和端口号(Port number)
+
+  - TCP和UDP端口是分开的，各有65536个端口
+
+- TCPServer.java  TCPClient.java
+
+  ```java
+  import java.net.*;
+  import java.io.*;
+
+  public class TCPServer {
+      public static void main(String[] args) throws Exception {
+          //创建绑定到特定端口(端口号6666)的服务器套接字
+          ServerSocket ss = new ServerSocket(6666);
+          while(true) {
+              //accept()方法侦听并接受到此套接字的连接。此方法在连接传入之前一直阻塞。
+              Socket s = ss.accept();
+              System.out.println("a client connect!");
+              DataInputStream dis = new DataInputStream(s.getInputStream());
+              //readUTF()方法也是阻塞的
+              System.out.println(dis.readUTF());
+              dis.close();
+              s.close();
+          }
+      }
+  }
+  ```
+
+  ​
+
+  ```java
+  import java.net.*;
+  import java.io.*;
+
+  public class TCPClient {
+      public static void main(String[] args) throws Exception {
+          //创建一个流套接字并将其连接到指定主机上(IP地址：127.0.0.1(本机IP))的指定端口号(6666)。
+          Socket s = new Socket("127.0.0.1", 6666);
+          //getOutputStream()用于返回此套接字的输出流。
+          OutputStream os = s.getOutputStream();
+          DataOutputStream dos = new DataOutputStream(os);
+          dos.writeUTF("hello server!");
+          dos.flush();
+          dos.close();
+          s.close();
+      }
+  }
+  ```
+
+- TestServer.java  TestClient.java
+
+  ```java
+  import java.net.*;
+  import java.io.*;
+
+  public class TestServer {
+      public static void main(String[] args) {
+          try {
+              ServerSocket ss = new ServerSocket(8888);
+              while(true) {
+                  Socket s = ss.accept();
+                  OutputStream os = s.getOutputStream();
+                  DataOutputStream dos = new DataOutputStream(os);
+                  dos.writeUTF("Hello," + s.getInetAddress() + "port#" + s.getPort() + " bye-bye!");
+                  dos.close();
+                  s.close();
+              }
+          } catch(IOException e) {
+              e.printStackTrace();
+          }
+      }
+  }
+  ```
+
+  ```java
+  import java.net.*;
+  import java.io.*;
+
+  public class TestClient {
+      public static void main(String[] args) {
+          try {
+              Socket s = new Socket("127.0.0.1", 8888);
+              InputStream is = s.getInputStream();
+              DataInputStream dis = new DataInputStream(is);
+              System.out.println(dis.readUTF());
+              dis.close();
+              s.close();
+          } catch(ConnectException e) {
+              e.printStackTrace();
+          } catch(IOException e) {
+              e.printStackTrace();
+          }
+      }
+  }
+  ```
+
+  ​
+
+### 8.03 UDP
+
+- TestUDPServer.java
+
+  ```java
+  import java.net.*;
+
+  public class TestUDPServer {
+      public static void main(String[] args) throws Exception {
+          byte[] buf = new byte[1024];
+          DatagramPacket dp = new DatagramPacket(buf, buf.length);
+          DatagramSocket ds = new DatagramSocket(5678);
+          while(true) {
+              //接收数据，是阻塞方法
+              ds.receive(dp);
+              //getLength()方法返回实际接收了多少数据
+              System.out.println(new String(buf, 0, dp.getLength()));
+          }
+      }
+  }
+  ```
+
+- TestUDPClient.java
+
+  ```java
+  import java.net.*;
+
+  public class TestUDPClient {
+      public static void main(String[] args) throws Exception {
+          byte[] buf = (new String("Hello")).getBytes();
+          DatagramPacket dp = new DatagramPacket(buf, buf.length, new InetSocketAddress("127.0.0.1", 5678));
+          DatagramSocket ds = new DatagramSocket(9999);
+          ds.send(dp);
+          ds.close();
+      }
+  }
+  ```
+
+  ​
+
+
+
+## 9. GUI(Graphics User Interface 图形用户界面)
+
+### 9.01 实现界面的三步曲
+
+1. 创建**组件**(Component)
+   - 穿件组成界面的各种元素，如按钮、文本框等
+2. 指定**布局**(Layout)
+   - 根据具体需要排列它们的位置关系
+3. 响应**事件**(Event)
+   - 定义图形用户界面的时间和各界面元素对不同事件的响应，从而实现图形用户界面与用户的交互功能
+
+
+
+#### Eclipse中的窗体设计
+
+- 项目上右键 New->Other->Windows Builder->—Swing Designer—Jframe
+
+  其顶部可切换source/design模式
+
+- design模式下：
+
+  - 在窗体上右键，Layout
+  - 加上按钮等组件
+  - 添加事件 Add New Event Handler
+
+
+
+### 9.02 AWT(Abstract Window Toolkit)
+
+- AWT包括了很多类和接口，用于Java Application的GUI编程
+- 使用AWT所涉及的类一般在java.awt包及其子包中
+- Component(所有图形元素的父类，抽象类)和Container(容器，Component的一个子类)是AWT中的两个核心类
+- AWT并未完全跨平台
+
+#### Component & Container
+
+- Java图形用户界面的最基本组成部分是Component，Component类及其子类的对象用来描述以图形化的方式显示在屏幕上并能与用户进行交互的GUI元素，例如一个按钮、一个标签等
+- 一般的Component对象不能独立地显示出来，必须将“放在”某一的Container对象中才可以显示出来
+- Container是Component子类，Container子类对象可以“容纳”别的Component对象
+- Container对象可使用方法add(...)向其中添加其他Component对象
+- Container是Component的子类，因此Container对象也可以被当作Component对象添加到其他Container对象中
+- 有两种常用的Container
+  - Window：其对象表示自由停泊的顶级窗口
+  - Panel：其对象可作为容纳其他Component对象，但不能独立存在，必须添加到其他Container中(如Window或Applet)
+
+
+
+### 9.03 Frame & Panel
+
+#### Frame
+
+- Frame是Window的子类，由Frame或其子类创建的对象为一个窗体，Frame是一个顶级窗口，缺省布局管理器为BorderLayout
+
+- Frame的常用构造方法：
+
+  > Frame()
+  >
+  > Frame(String s)  创建标题栏为字符串s的窗口
+
+- TestFrame.java
+
+  ```java
+  import java.awt.*;
+
+  public class TestFrame {
+      public static void main(String[] args) {
+          Frame f = new Frame("My First Test");
+          //设置窗口宽度为170,高度为100,单位为像素
+          f.setSize(170, 100);
+          //设置窗口出现的位置，原点在左上角，默认出现位置为左上角(0, 0)
+          f.setLocation(300, 300);
+          //设置背景色
+          f.setBackground(Color.blue);
+          //设置为不能改变窗口大小
+          f.setResizable(false);
+          //设置是窗口可见
+          f.setVisible(true);
+      }
+  }
+  ```
+
+- TestMultiFrame.java
+
+  ```java
+  import java.awt.*;
+
+  public class TestMultiFrame {
+      public static void main(String[] args) {
+          MyFrame f1 = new MyFrame(100, 100, 200, 200, Color.BLUE);
+          MyFrame f2 = new MyFrame(300, 100, 200, 200, Color.YELLOW);
+          MyFrame f3 = new MyFrame(100, 300, 200, 200, Color.GREEN);
+          MyFrame f4 = new MyFrame(300, 300, 200, 200, Color.MAGENTA);
+      }
+  }
+
+  class MyFrame extends Frame {
+      static int id = 0;
+      MyFrame(int x, int y, int w, int h, Color color) {
+          super("MyFrame " + (++id));
+          setBackground(color);
+          //设置布局管理器为空
+          setLayout(null);
+          //设置出现的位置(x, y)和窗口大小(w, h)
+          setBounds(x, y, w, h);
+          setVisible(true);
+      }
+  }
+  ```
+
+
+
+#### Panel
+
+- Panel对象可以看成是可以容纳Component的空间，但Panel无法单独显示，必须添加到某个容器中
+
+- Panel对象可以拥有自己的布局管理器，默认布局管理器为FlowLayout
+
+- Panel的构造方法
+
+  > Panel()  使用默认的FlowLayout类布局管理器初始化
+  >
+  > Panel(LayoutManager layout)  使用指定的布局管理器初始化
+
+- TestPanel.java
+
+  ```java
+  import java.awt.*;
+
+  public class TestPanel {
+      public static void main(String[] args) {
+          Frame f = new Frame("Java Frame with Panel");
+          Panel p = new Panel(null);
+          f.setLayout(null);
+          f.setBounds(300, 300, 500, 500);
+          f.setBackground(new Color(0, 0, 102));
+          p.setBounds(50, 50, 400, 400);
+          p.setBackground(new Color(204, 204, 255));
+          f.add(p);
+          f.setVisible(true);
+      }
+  }
+  ```
+
+- TestMultiPanel.java
+
+  ```java
+  import java.awt.*;
+
+  public class TestMultiPanel {
+      public static void main(String[] args) {
+          new MyFrame("MyFrameWithPanel", 300, 300, 400, 300);
+      }
+  }
+
+  class MyFrame extends Frame {
+      private Panel p1, p2, p3, p4;
+
+      MyFrame(String s, int x, int y, int w, int h) {
+          super(s);
+          setLayout(null);
+          p1 = new Panel(null);
+          p2 = new Panel(null);
+          p3 = new Panel(null);
+          p4 = new Panel(null);
+          p1.setBounds(0, 0, w/2, h/2);
+          p2.setBounds(0, h/2, w/2, h/2);
+          p3.setBounds(w/2, 0, w/2, h/2);
+          p4.setBounds(w/2, h/2, w/2, h/2);
+          p1.setBackground(Color.BLUE);
+          p2.setBackground(Color.GREEN);
+          p3.setBackground(Color.YELLOW);
+          p4.setBackground(Color.MAGENTA);
+          add(p1);
+          add(p2);
+          add(p3);
+          add(p4);
+          setBounds(x, y, w, h);
+          setVisible(true);
+      }
+  }
+  ```
+
+  ​
+
+### 9.04 布局管理器
+
+- Java语言中，提供了布局管理器类的对象
+
+  - 管理Component在Container中的布局，负责各个组件的大小和位置，用户无法在这种情况下设置组件大小和位子属性，如果试图使用setLocation()，setSize()，setBounds()等方法，会被布局管理器覆盖
+  - 每个Container都有一个布局管理器对象，当容器需要对某个组件进行定位或判断其大小尺寸时，就会调用其对应的布局管理器，调用Container的setLayout方法改变其布局管理器对象
+
+- AWT提供了5种布局管理器类：
+
+  > FlowLayout
+  >
+  > BorderLayout
+  >
+  > GridLayout
+  >
+  > GardLayout
+  >
+  > GridBagLayout
+
+
+
+#### FlowLayout
+
+- FlowLayout是Panel类的默认布局管理器
+
+  - FlowLayout布局管理器对组件逐行定位，行内从左到右，一行排满后换行
+  - 不改变组件的大小，按组件原有尺寸显示组件，可设置不同的组件间距，行距以及对齐方式
+
+- FlowLayout布局管理器默认的对其方式是居中
+
+- FlowLayout的构造方法
+
+  ```java
+  //右对齐，组件之间水平间距20个像素，垂直间距40个像素
+  new FlowLayout(FlowLayout.RIGHT, 20, 40);
+  //左对齐，水平和垂直间距为缺省值(5)
+  new FlowLayout(FlowLayout.LEFT);
+  //使用缺省的居中对齐方式，水平和垂直间距为缺省值(5)
+  new FlowLayout();
+  ```
+
+- TestFlowLayout.java
+
+  ```java
+  import java.awt.*;
+
+  public class TestFlowLayout {
+      public static void main(String[] args) {
+          Frame f = new Frame("Flow Layout");
+          Button button1 = new Button("ok");
+          Button button2 = new Button("open");
+          Button button3 = new Button("close");
+          f.setLayout(new FlowLayout());
+          f.add(button1);
+          f.add(button2);
+          f.add(button3);
+          f.setSize(300, 100);
+          f.setVisible(true);
+      }
+  }
+  ```
+
+- TestFlowLayout2.java
+
+  ```java
+  import java.awt.*;
+
+  public class TestFlowLayout2 {
+      public static void main(String[] args) {
+          Frame f = new Frame("Java Frame");
+          FlowLayout fl = new FlowLayout(FlowLayout.CENTER, 20, 40);
+          f.setLayout(fl);
+          f.setLocation(300, 400);
+          f.setSize(300, 200);
+          f.setBackground(new Color(204, 204, 255));
+          for(int i = 1; i <= 7; i++) {
+              f.add(new Button("BUTTON" + i));
+          }
+          f.setVisible(true);
+      }
+  }
+  ```
+
+  ​
+
+#### BorderLayout
+
+- BorderLayout是Frame类的默认布局管理器
+
+- BorderLayout将整个容器的布局划分成**东(EAST)**、**西(WEST)**、**南(SOUTH)**、**北(NORTH)**、**中(CENTER)**五个区域，组件只能被添加到指定的区域
+
+- 如不指定组件的加入部位，则默认加入到CENTER区
+
+- 每个区域只能加入一个组件，如加入多个，则先前加入的会被覆盖
+
+- BorderLayout型布局容器尺寸缩放原则：
+
+  - 北、南两个区域在水平方向缩放
+  - 东、西两个区与在垂直方向缩放
+  - 中部可在两个方向上缩放
+
+- TestBorderLayout.java
+
+  ```java
+  import java.awt.*;
+
+  public class TestBorderLayout {
+      public static void main(String[] args) {
+          Frame f = new Frame("Border Layout");
+          Button bn = new Button("BN");
+          Button bs = new Button("BS");
+          Button bw = new Button("BW");
+          Button be = new Button("BE");
+          Button bc = new Button("BC");
+
+          f.add(bn, BorderLayout.NORTH);
+          f.add(bs, BorderLayout.SOUTH);
+          f.add(bw, BorderLayout.WEST);
+          f.add(be, BorderLayout.EAST);
+          f.add(bc, BorderLayout.CENTER);
+
+          //也可以这么写，但是不推荐，因为若第二个参数写错，如NORTH写成NOTH，编译时不会报错，运行时会出错，而上面那种方法若写错编译时就会报错
+          /*
+          f.add(bn, "NORTH");
+          f.add(bs, "SOUTH");
+          f.add(bw, "WEST");
+          f.add(be, "EAST");
+          f.add(bc, "CENTER");
+          */
+
+          f.setSize(200, 200);
+          f.setVisible(true);
+      }
+  }
+  ```
+
+
+
+#### GridLayout
+
+- GridLayout型布局管理器将空间划分成规则的矩形网格，每个单元格区域大小相等。组件被添加到每个单元格中，先从左到右填满一行后换行，再从上到下
+
+- GridLayout构造方法
+
+  > GridLayout()  默认的网格布局，每个组件占据一行一列
+  >
+  > GridLayout(int rows, int cols)  创建具有指定行数和列数的网格布局，给布局中所有组件分配相等的大小，rows和cols中一个可以为零(但不能两者同时为零)
+  >
+  > GridLayout(int rows, int cols, int hgap, int vgap)  创建具有指定行数和列数的网格布局，给布局中所有组件分配相等的大小，此外，将水平间距(列与列之间)和垂直间距(行与行之间)设置为指定值
+
+- TestGridLayout.java
+
+  ```java
+  import java.awt.*;
+
+  public class TestGridLayout {
+      public static void main(String[] args) {
+          Frame f = new Frame("GridLayout Example");
+          Button b1 = new Button("b1");
+          Button b2 = new Button("b2");
+          Button b3 = new Button("b3");
+          Button b4 = new Button("b4");
+          Button b5 = new Button("b5");
+          Button b6 = new Button("b6");
+
+          f.setLayout(new GridLayout(3, 2));
+          f.add(b1);
+          f.add(b2);
+          f.add(b3);
+          f.add(b4);
+          f.add(b5);
+          f.add(b6);
+
+          //根据窗口里面的布局及组件的preferedSize(最佳大小)来设置frame的大小
+          f.pack();
+          f.setVisible(true);
+      }
+  }
+  ```
+
+
+
+#### 例子：TenButtons.java
+
+```java
+import java.awt.*;
+
+public class TenButtons {
+    public static void main(String[] args) {
+        Frame f = new Frame("Java Frame");
+        f.setLayout(new GridLayout(2, 1));
+        f.setLocation(300, 400);
+        f.setSize(300, 200);
+        f.setBackground(new Color(204, 204, 255));
+
+        Panel p1 = new Panel(new BorderLayout());
+        Panel p2 = new Panel(new BorderLayout());
+        Panel p11 = new Panel(new GridLayout(2, 1));
+        Panel p21 = new Panel(new GridLayout(2, 2));
+
+        p1.add(new Button("BUTTON"), BorderLayout.WEST);
+        p1.add(new Button("BUTTON"), BorderLayout.EAST);
+        p11.add(new Button("BUTTON"));
+        p11.add(new Button("BUTTON"));
+        p1.add(p11, BorderLayout.CENTER);
+        p2.add(new Button("BUTTON"), BorderLayout.WEST);
+        p2.add(new Button("BUTTON"), BorderLayout.EAST);
+        for(int i = 1; i <= 4; i++) {
+            p21.add(new Button("BUTTON"));
+        }
+        p2.add(p21, BorderLayout.CENTER);
+        f.add(p1);
+        f.add(p2);
+        f.setVisible(true);
+    }
+}
+```
+
+
+
