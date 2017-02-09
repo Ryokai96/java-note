@@ -5351,3 +5351,43 @@ public class TenButtons {
 
 
 
+### 9.05 事件模型
+
+- 事件监听
+
+  - 想监听某个事件，就必须实现某个一直对应的接口
+
+  ```mermaid
+  graph TB
+  	A[事件源对象]-->|当某种事件发生时 向监听器传送某种事件对象 进行事件对象后进行某种处理|B[实现了某种监听器接口的类得对象]
+  	B-->|告知事件源对象|A
+  ```
+
+  ​
+
+  - TestActionEvent.java
+
+    ```java
+    import java.awt.*;
+    import java.awt.event.*;
+
+    public class TestActionEvent {
+        public static void main(String[] args) {
+            Frame f = new Frame("Test");
+            Button b = new Button("Press Me!");
+            Monitor bh = new Monitor();
+            b.addActionListener(bh);
+            f.add(b, BorderLayout.CENTER);
+            f.pack();
+            f.setVisible(true);
+        }
+    }
+
+    class Monitor implements ActionListener {
+        public void actionPerformed(ActionEvent e) {
+            System.out.println("a button has been pressed");
+        }
+    }
+    ```
+
+    ​
