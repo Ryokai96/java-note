@@ -5368,6 +5368,7 @@ public class TenButtons {
   - TestActionEvent.java
 
     ```java
+    //java.awt和java.awt.event是两个不同的包，没有包含关系
     import java.awt.*;
     import java.awt.event.*;
 
@@ -5390,4 +5391,284 @@ public class TenButtons {
     }
     ```
 
+  - TestActionEvent2.java
+
+    ```java
+    import java.awt.*;
+    import java.awt.event.*;
+
+    public class TestActionEvent2 {
+        public static void main(String[] args) {
+            Frame f = new Frame("Test");
+            Button b1 = new Button("start");
+            Button b2 = new Button("stop");
+            Monitor2 bh = new Monitor2();
+
+            b1.addActionListener(bh);
+            b2.addActionListener(bh);
+            //设置此按钮激发的动作事件的命令名称，可用于区分按钮
+            b2.setActionCommand("game over");
+
+            f.add(b1, "North");
+            f.add(b2, "Center");
+            f.pack();
+            f.setVisible(true);
+        }
+    }
+
+    class Monitor2 implements ActionListener {
+        public void actionPerformed(ActionEvent e) {
+            System.out.println("a button has been pressed," + "the relative info is:\n " + e.getActionCommand());
+        }
+    }
+    ```
+
     ​
+
+  - TFActionEvent.java
+
+    ```java
+    import java.awt.*;
+    import java.awt.event.*;
+
+    public class TFActionEvent {
+        public static void main(String[] args) {
+            new TFFrame();
+        }
+    }
+
+    class TFFrame extends Frame {
+        TFFrame() {
+            TextField tf = new TextField();
+            add(tf);
+            tf.addActionListener(new TFActionListener());
+            pack();
+            setVisible(true);
+        }
+    }
+
+    class TFActionListener implements ActionListener {
+        public void actionPerformed(ActionEvent e) {
+            //getSource()方法返回事件源(getSource()是Object类定义的方法，返回的是Object类型的对象)
+            TextField tf = (TextField)e.getSource();
+            System.out.println(tf.getText());
+            tf.setText("");
+        }
+    }
+    ```
+
+    ​
+
+#### 持有对方引用
+
+- TFMath.java
+
+  ```java
+  import java.awt.*;
+  import java.awt.event.*;
+
+  public class TFMath {
+      public static void main(String[] args) {
+          new TFFrame().launchFrame();
+      }
+  }
+
+  class TFFrame extends Frame {
+      TextField num1, num2, num3;
+
+      public void launchFrame() {
+          num1 = new TextField(10);
+          num2 = new TextField(10);
+          num3 = new TextField(15);
+
+          Label lblPlus = new Label("+");
+          Button btnEqual = new Button("=");
+
+          btnEqual.addActionListener(new MyMonitor(this));
+
+          setLayout(new FlowLayout());
+          add(num1);
+          add(lblPlus);
+          add(num2);
+          add(btnEqual);
+          add(num3);
+          pack();
+          setVisible(true);
+      }
+  }
+
+  class MyMonitor implements ActionListener {
+      TFFrame tf = null;
+
+      //传入TFFrame的引用
+      public MyMonitor(TFFrame tf) {
+          this.tf= tf;
+      }
+
+      public void actionPerformed(ActionEvent e) {
+          int n1 = Integer.parseInt(tf.num1.getText());
+          int n2 = Integer.parseInt(tf.num2.getText());
+          //加上""是为了转换为字符串
+          tf.num3.setText("" + (n1 + n2));
+      }
+  }
+  ```
+
+
+
+#### 内部类
+
+- TFMath2.java
+
+  ```java
+  import java.awt.*;
+  import java.awt.event.*;
+
+  public class TFMath2 {
+      public static void main(String[] args) {
+          new TFFrame().launchFrame();
+      }
+  }
+
+  //包装类
+  class TFFrame extends Frame {
+      TextField num1, num2, num3;
+
+      public void launchFrame() {
+          num1 = new TextField(10);
+          num2 = new TextField(10);
+          num3 = new TextField(15);
+
+          Label lblPlus = new Label("+");
+          Button btnEqual = new Button("=");
+
+          btnEqual.addActionListener(new MyMonitor());
+
+          setLayout(new FlowLayout());
+          add(num1);
+          add(lblPlus);
+          add(num2);
+          add(btnEqual);
+          add(num3);
+          pack();
+          setVisible(true);
+      }
+
+      //内部类
+      class MyMonitor implements ActionListener {
+          public void actionPerformed(ActionEvent e) {
+              int n1 = Integer.parseInt(num1.getText());
+              int n2 = Integer.parseInt(num2.getText());
+              num3.setText("" + (n1 + n2));
+          }
+      }
+  }
+  ```
+
+- 好处：
+
+  - 可以方便地访问包装类的成员
+  - 可以更清楚地组织逻辑，防止不应该被其他类访问的类进行访问
+
+- 何时使用：
+
+  - 该类不允许或不需要其它类进行访问时
+
+
+
+### Graphics
+
+- 每个Component都有一个paint(Graphics g)用于实现绘图的目的，每次重画该Component时都自动调用paint方法
+
+- TestPaint.java
+
+  ```java
+  import java.awt.*;
+
+  public class TestPaint {
+      public static void main(String[] args) {
+          new PaintFrame().launchFrame();
+      }
+  }
+
+  class PaintFrame extends Frame {
+      public void launchFrame() {
+          setBounds(200, 200, 640, 480);
+          setVisible(true);
+      }
+
+      //paint()方法是自动执行的
+      public void paint(Graphics g) {
+          Color c = g.getColor();
+          g.setColor(Color.red);
+          //fillOval(50, 50, 30, 30)方法画位于(50, 50, 30, 30)的长方形的内切椭圆
+          g.fillOval(50, 50, 30, 30);
+          g.setColor(Color.green);
+          g.fillRect(80, 80, 40, 40);
+          g.setColor(c);
+      }
+  }
+  ```
+
+  ​
+
+### 鼠标事件适配器
+
+- 抽象类java.awt.event.MouseAdapter实现了MouseListener接口，可以使用其子类作为MouseEvent的监听器，只要重写其相应的方法即可
+
+- 对于其他的监听器，也有对应的适配器
+
+- 使用适配器可以避免监听器类定义没有必要的空方法
+
+- MyMouseAdapter.java
+
+  ```java
+  import java.awt.*;
+  import java.awt.event.*;
+  import java.util.*;
+
+  public class MyMouseAdapter {
+      public static void main(String[] args) {
+          new MyFrame("drawing...");
+      }
+  }
+
+  class MyFrame extends Frame {
+      ArrayList points = null;
+      MyFrame(String s) {
+          super(s);
+          points = new ArrayList();
+          setLayout(null);
+          setBounds(300, 300, 400, 300);
+          this.setBackground(new Color(204, 204, 255));
+          setVisible(true);
+          this.addMouseListener(new Monitor());
+      }
+
+      public void paint(Graphics g) {
+          Iterator i = points.iterator();
+          while(i.hasNext()) {
+              Point p = (Point)i.next();
+              g.setColor(Color.BLUE);
+              g.fillOval(p.x, p.y, 10, 10);
+          }
+      }
+
+      public void addPoint(Point p) {
+          points.add(p);
+      }
+  }
+
+  class Monitor extends MouseAdapter {
+      public void mousePressed(MouseEvent e) {
+          MyFrame f = (MyFrame)e.getSource();
+          f.addPoint(new Point(e.getX(), e.getY()));
+          //repaint()方法用来对当前窗口进行整个重画 (每加入一个点重画一次)
+          f.repaint();
+      }
+  }
+  ```
+
+  ​
+
+  ​
