@@ -5576,7 +5576,7 @@ public class TenButtons {
 
 
 
-### Graphics
+### 9.05 Graphics
 
 - 每个Component都有一个paint(Graphics g)用于实现绘图的目的，每次重画该Component时都自动调用paint方法
 
@@ -5612,13 +5612,15 @@ public class TenButtons {
 
   ​
 
-### 鼠标事件适配器
+### 9.06 鼠标事件适配器
 
 - 抽象类java.awt.event.MouseAdapter实现了MouseListener接口，可以使用其子类作为MouseEvent的监听器，只要重写其相应的方法即可
 
 - 对于其他的监听器，也有对应的适配器
 
 - 使用适配器可以避免监听器类定义没有必要的空方法
+
+- repaint()方法先调用了update()方法再调用paint()方法
 
 - MyMouseAdapter.java
 
@@ -5671,4 +5673,87 @@ public class TenButtons {
 
   ​
 
-  ​
+
+### 9.07 Window 事件
+
+- TestWindowClose.java
+
+  ```java
+  import java.awt.*;
+  import java.awt.event.*;
+
+  public class TestWindowClose {
+      public static void main(String[] args) {
+          new MyFrame("MyFrame");
+      }
+  }
+
+  class MyFrame extends Frame {
+      MyFrame(String s) {
+          super(s);
+          setLayout(null);
+          setBounds(300, 300, 400, 300);
+          this.setBackground(new Color(204, 204, 255));
+          setVisible(true);
+          //匿名类，将这个类当作WindowAdapter类来用
+          this.addWindowListener(new WindowAdapter() {
+            	//重写了windowClosing方法
+              public void windowClosing(WindowEvent e) {
+                  setVisible(false);
+                  System.exit(0);
+              }
+          });
+      }
+  }
+  ```
+
+
+
+#### 匿名类
+
+- 匿名类是方法内的类(匿名的局部类)
+
+- 匿名类只能是内部类
+
+- 匿名类有两种创建方式：继承父类、单重实现接口
+
+- TestAnonymous.java
+
+  ```java
+  import java.awt.*;
+  import java.awt.event.*;
+
+  public class TestAnonymous {
+      Frame f = new Frame("Test");
+      TextField tf = new TextField(10);
+      Button b1 = new Button("Start");
+
+      public TestAnonymous() {
+          f.add(b1, "North");
+          f.add(tf, "South");
+
+          b1.addActionListener(new ActionListener() {
+              private int i;
+              public void actionPerformed(ActionEvent e) {
+                  tf.setText(e.getActionCommand() + ++i);
+              }
+          });
+
+          f.addWindowListener(new WindowAdapter() {
+              public void windowClosing(WindowEvent e) {
+                  System.exit(0);
+              }
+          });
+
+          f.pack();
+          f.setVisible(true);
+      }
+
+      public static void main(String[] args) {
+          new TestAnonymous();
+      }
+  }
+  ```
+
+
+
