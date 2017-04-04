@@ -5926,16 +5926,3 @@ public class TenButtons {
     }
 ```
 
-## 11. 正则表达式(RegularExpressions)
-- 用途
-    - 字符串匹配(字符匹配)
-    - 字符串查找
-    - 字符串替换
-- 例如
-    - IP地址是否正确
-    - 从网页中揪出email地址
-    - 从网页中揪出链接等
-- 类
-    - java.lang.String
-    - java.util.regex.Pattern
-    - java.util.regex.Matcher
