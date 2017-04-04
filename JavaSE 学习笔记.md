@@ -5757,3 +5757,185 @@ public class TenButtons {
 
 
 
+
+## 10. 反射机制
+
+### 10.01 ClassLoader的类加载机制
+
+- 程序的运行过程
+    1. ClassLoader将.class文件Load到内存CodeSegment中
+    2. 运行环境找到main方法开始执行
+    3. 运行过程中会有更多的class被load到内存(原因：动态加载机制)
+- ClassLoader的类加载机制
+    - 并非一次性加载，用到的时候才加载(运行期间动态加载)
+    - static语句块在加载后执行一次
+        - 例:
+            ```java
+            public class Test{
+                public class void main(String[] args) {
+                    new A();
+                    new A();
+                }
+            }
+
+            class A {
+                static {
+                    System.out.println("AAAA");
+                }
+            }
+            ```
+            > 程序只输出了一条 AAAA
+
+    - dynamic语句块(动态语句块)
+        - 每次new新的对象都会执行
+        - 例:
+            ```java
+            public class Test{
+                public class void main(String[] args) {
+                    new A(1);
+                    new A(1);
+                }
+            }
+
+            class A {
+                //构造方法
+                D(int i) {}
+
+                //dynamic语句块
+                {
+                    System.out.println("AAAA");
+                }
+            }
+            ```
+            > 程序输出两条AAAA
+
+### 10.02 JDK中的classloader的分类
+- JDK中的classloader非常的多
+- bootstrap class loader
+    - 加载jdk中最核心的类
+    - bootstrap class loader一般由C语言这样的本地语言实现
+- extension class loader
+    - 加载JDK的扩展类(这些扩展类位于jre/lib/ext目录下)
+- application class loader
+    - 加载用户自己定义的class
+- other class loaders
+    - SecureClassLoader
+    - URLClassLoader
+    - ...
+- TestJDKClassLoader.java
+    ```java
+        public class TestJDKClassLoader {
+
+            public static void main(String[] args) {
+                // TODO Auto-generated method stub
+                System.out.println(String.class.getClassLoader());
+                System.out.println(com.sun.crypto.provider.DESedeKeyFactory.class.getClassLoader().getClass().getName());
+                System.out.println(TestJDKClassLoader.class.getClassLoader().getClass().getName());
+                System.out.println(ClassLoader.getSystemClassLoader().getClass().getName());
+            }
+        }
+    ```
+    输出：
+    > null
+    > sun.misc.Launcher$ExtClassLoader
+    > sun.misc.Launcher$AppClassLoader
+    > sun.misc.Launcher$AppClassLoader
+
+- 加载过程：首先由bootstrap class loader加载其他的class loader，然后其他的class loader加载其他的class
+
+
+
+### 10.03 JDK Class Loader的层次关系
+
+- 所有的Class Loader都由ClassLoader类继承而来
+- ClassLoader类有一个方法getParent()，可以得到当前Class Loader对象的引用指向的Class Loader对象(上一层的class loader)，这个对象之间的关系，并不是类的继承
+- 加载过程:class loader在load class的时候首先找上一层的loader是否已经load过这个class了，如果已经load了，就不会再次load
+    - 这么做的作用:安全性好
+- TestClassLoader.java
+    ```java
+        public class TestClassLoader {
+            public static void main(String[] args) {
+                ClassLoader c = TestClassLoader.class.getClassLoader();
+                while(c != null) {
+                    System.out.println(c.getClass().getName());
+                    c = c.getParent();
+                }
+            }
+        }
+    ```
+    输出：
+    > sun.misc.Launcher$AppClassLoader
+    > sun.misc.Launcher$ExtClassLoader
+
+### 10.04 反射
+```java
+    import java.lang.reflect.InvocationTargetException;
+    import java.lang.reflect.Method;
+
+    public class TestReflection {
+
+        public static void main(String[] args) throws ClassNotFoundException, InstantiationException, IllegalAccessException, IllegalArgumentException, InvocationTargetException {
+            // TODO Auto-generated method stub
+            String str = "T";
+            Class c = Class.forName(str);
+            Object o = c.newInstance();
+            Method[] methods = c.getMethods();
+            for(Method m : methods) {
+                if(m.getName().equals("mm")) {
+                    m.invoke(o);
+                }
+                if(m.getName().equals("m1")) {
+                    m.invoke(o, 1, 2);
+                    for(Class paramType : m.getParameterTypes()) {
+                        System.out.println(paramType.getName());
+                    }
+                }
+                if(m.getName().equals("getS")) {
+                    Class returnType = m.getReturnType();
+                    System.out.println(returnType.getName());
+                }
+            }
+        }
+
+    }
+
+    class T {
+        static {
+            System.out.println("T loaded!");
+        }
+        
+        public T() {
+            System.out.println("T constracted");
+        }
+        
+        int i;
+        String s;
+        
+        public void mm() {
+            System.out.println("mm invoked!");
+        }
+        
+        public void m1(int i, int j) {
+            this.i = i + j;
+            System.out.println(i);
+        }
+        
+        public String getS() {
+            return s;
+        }
+    }
+```
+
+## 11. 正则表达式(RegularExpressions)
+- 用途
+    - 字符串匹配(字符匹配)
+    - 字符串查找
+    - 字符串替换
+- 例如
+    - IP地址是否正确
+    - 从网页中揪出email地址
+    - 从网页中揪出链接等
+- 类
+    - java.lang.String
+    - java.util.regex.Pattern
+    - java.util.regex.Matcher
