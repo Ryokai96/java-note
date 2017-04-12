@@ -309,4 +309,102 @@ insert into dept(deptno, dname, loc) values(50, 'game', 'beijing');	/*推荐写�
     select ename, sal from (select ename, sal from emp order by sal desc) where rownum <= 5;  /*使用子查询以达到先排序，再取出前五行的目的*/
     ```
 
-    ​
+
+
+
+### 3.11 update 更新
+
+```sql
+update emp set sal = sal * 2 where deptno = 10;  /*更新表emp中内容，把deptno=10的每行中的sal改为原来的两倍*/
+```
+
+
+
+### 3.12 delete 删除
+
+```sql
+delete from emp;  /*删除emp中所有行*/
+delete from dept where deptno = 10;  /*删除表dept中deptno=10的行*/
+```
+
+
+
+### 3.13 create table 创建表，约束
+
+- 创建约束: constraint 约束名 约束条件
+
+- default: 给该字段设置默认值
+
+- 非空约束: not null
+
+- 唯一约束: unique
+
+  唯一约束要求该字段不能有重复的值，但多个null(空值)不认为是重复的值
+
+- 主键约束: primary key
+
+  主键非空且唯一
+
+- 外键约束: foreign key
+
+  外键约束是建立在两个字段上的，某个字段会参考另一个字段上的值，参考的字段的值不能设为被参考的字段没有的值
+
+  **被参考字段必须是主键**
+
+```sql
+create table t (a varchar2(10));  /*创建表名为t的表，表中有一个字段，列名为a，数据类型为varchar2(10)(可变字符串，字符串长度最多为10)*/
+
+create table class
+(
+  id number(4) primary key,
+  name varchar2(20) not null
+);
+
+create table stu
+(
+  id number(6) primary key,  /*给该字段添加主键约束*/
+  name varchar2(20) constraint stu_name_nn not null,  /*constraint用于创建约束，stu_name_nn 为约束名，约束条件是不能为空*/
+  sex number(1),
+  age number(3),
+  sdate date,
+  grade number(2) default 1,  /*default指定默认值为1*/
+  class number(4) references class(id),  /*创建外键约束，参考字段为class，被参考字段为表class中的id字段*/
+  email varchar2(50),
+  constraint stu_name_email_uni unique(email, name)  /*创建一个表级的约束，约束条件为email和name的组合不能重复*/
+  /*constraint stu_id_pk primary key(id)  创建表级约束，将id设为该表主键*/
+  /*constraint stu_class_fk foreign key(class) references class(id)  建立外键，参考字段为class，被参考字段为表class中的id字段*/
+);
+```
+
+
+
+### 3.14 drop 删除表
+
+```sql
+drop table t;  /*删除表t*/
+```
+
+
+
+## 4. transaction 事务
+
+- 对Oracle来说，一个transaction起始于第一条dml语句，结束于ddl语句和dcl语句
+
+- rollback可以回滚到整个transaction前
+
+  ```sql
+  update emp set sal = sal * 2;  /*transaction开启*/
+  delete from dept;
+  insert into salgrade(grade, losal, hisal) values(6, 10000, 20000);
+  rollback;  /*transaction结束，回滚到整个transaction之前，即回退到上面三条语句执行前*/
+
+  update emp set sal = sal*2;  /*transaction开启*/
+  commit;  /*提交，此时transaction结束*/
+  rollback;  /*transaction已结束，无法回滚*/
+
+  update dept set deptno = deptno * 2;  /*transaction开启*/
+  create table t (a varchar2(20));  /*transaction结束，并自动提交*/
+  rollback;  /*无法回滚*/
+  ```
+
+- 当用户正常退出时，transaction自动提交；用户非正常断开连接时，transaction自动rollback
