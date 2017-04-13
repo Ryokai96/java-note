@@ -386,6 +386,18 @@ drop table t;  /*删除表t*/
 
 
 
+### 3.15 alter table 修改表结构
+
+```sql
+alter table stu add (addr varchar2(100));  //给表stu增加一个字段addr
+alter table stu drop (addr);  //删除表stu的addr字段
+alter table stu modify (addr varchar2(50));  //修改表stu的addr字段的最大长度为50，若addr字段中有数据超过了50，则不可修改，会报错
+alter table stu drop constraint stu_class_fk;  //删除表stu的约束条件stu_class_fk
+alter table stu add constraint stu_class_fk foreign key (class) references class(id);  //为表stu增加外键stu_class_fk
+```
+
+
+
 ## 4. transaction 事务
 
 - 对Oracle来说，一个transaction起始于第一条dml语句，结束于ddl语句和dcl语句
