@@ -8,7 +8,7 @@
 
 - 如果安装时未更改SID则SID为orcl
 
-- 使用sysdba身份登录: sqlplus / as sysdba
+- 使用OS身份连接: sqlplus / as sysdba
 
 - 修改密码: alter user username identified by password;
 
@@ -398,6 +398,59 @@ alter table stu add constraint stu_class_fk foreign key (class) references class
 
 
 
+### 3.16 索引
+
+- 为某个字段建立索引可提高访问这个字段的数据的效率，但是会减慢修改这个字段的数据的效率，**不要轻易建立索引**
+
+
+- 当为一个表的某个字段添加了主键约束或唯一约束，会自动为这个字段添加索引
+
+```sql
+create index idx_stu_email on stu (email);  /*为表stu的email字段建立名为idx_stu_email的索引*/
+create index idx_stu_email_class on stu (email, class);  /*为表stu的email和class的组合建立索引*/
+drop index idx_stu_email_class;  /*删除索引*/
+```
+
+
+
+### 3.17 视图
+
+- 视图相当于一个子查询，可以简化查询，可对机密数据提供安全保护
+- 表结构改变，需要手动修改视图，这会增加维护的支出
+- 更新视图的数据，实际是更新原表的数据，但是有时会根据多张表建立视图，视图只有满足下列条件才可更新
+  - select语句在选择列表中没有聚合函数，也不包含TOP,GROUP BY,UNION(除非视图是分区视图)或DISTINCT子句。聚合函数可以用在FROM子句的子查询中，只要不修改函数返回的值
+  - select语句的选择列表中没有派生列。派生列是由任何非简单列表达式(使用函数、加法或减法运算符等)所构成的结果集列
+  - select语句中的FROM子句至少引用一个表。select语句不能只包含非表格格式的表达式(即不是从表派生出的表达式)
+  - INSERT,UPDATE和DELETE语句在引用可更新视图之前，也必须如上述条件指定的那样满足某些限制条件。只有当视图可更新，并且所编写的UPDATE或INSERT语句只修改视图的FROM子句引用的一个基表中的数据时，UPDATE和INSERT语句才能引用视图。只有当视图在其FROM子句中只引用一个表时，DELETE语句才能引用可更新的视图
+
+```sql
+create view v$_stu as select id, name, age from stu;  /*新建视图*/
+```
+
+
+
+### 3.18 序列 (Oracle独有)
+
+- 序列用于产生一个有序的数，且这个数不会重复，即便两个线程同时访问，这个数也不会重复
+
+```sql
+create table article 
+(
+  id number,
+  title varchar2(1024),
+  cont long
+);
+create sequence seq;  /*创建名为seq的序列*/
+insert into article(id, title, cont) values(seq.nextval, 'a', 'b');  /*nextval为sequence的一个属性，表示下一个sequence的值，此时seq.nextval值为1*/
+insert into article(id, title, cont) values(seq.nextval, 'a', 'b');  /*此时seq.nextval值为2*/
+insert into article(id, title, cont) values(seq.nextval, 'a', 'b');  /*此时seq.nextval值为3*/
+select seq.nextval from dual;  /*此时seq.nextval为4*/
+select seq.nextval from dual;  /*此时seq.nextval为5*/
+drop sequence seq;  /*删除序列*/
+```
+
+
+
 ## 4. transaction 事务
 
 - 对Oracle来说，一个transaction起始于第一条dml语句，结束于ddl语句和dcl语句
@@ -420,3 +473,27 @@ alter table stu add constraint stu_class_fk foreign key (class) references class
   ```
 
 - 当用户正常退出时，transaction自动提交；用户非正常断开连接时，transaction自动rollback
+
+
+
+## 5. 数据字典表
+
+- 每个用户都有数据字典表，用于记录用户拥有的表、视图等的信息
+
+```sql
+select table_name from user_tables;  /*查询此用户所有表的表名*/
+select view_name from user_views;  /*查询此用户所有视图的视图名*/
+select constraint_name, table_name from user_constraints;  /*查询此用户所有约束的约束名，以及约束所在表的表名*/
+```
+
+- dictionary表用于记录Oracle数据库各数据字典表的信息
+
+  ```sql
+  desc dictionary  /*dictionary表只有两个字段，TABLE_NAME(表名)和COMMENTS(这张表的描述)*/
+  ```
+
+  >  名称                                      是否为空? 类型
+  >  ----------------------------------------- -------- ----------------------------
+  >  TABLE_NAME                                         VARCHAR2(30)
+  >  COMMENTS                                           VARCHAR2(4000)
+
