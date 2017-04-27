@@ -1,5 +1,7 @@
 # Oracle 11g 笔记
 
+[TOC]
+
 ## 1. Oracle 11g 安装
 
 - 默认端口: 1521
@@ -509,3 +511,290 @@ select constraint_name, table_name from user_constraints;  /*查询此用户所�
 - 第二范式：不存在部分依赖
   - 当一张表里有多个字段作为主键时，非主键的字段不依赖于非主键字段或者部分主键字段(只能依赖于所有主键的组合)，若非如此，需要将该表分割成多表
 - 第三范式：不存在传递依赖，不是主键的任何其他字段必须直接依赖于主键
+
+
+
+## 7. PL/SQL
+
+- PL/SQL是过程化SQL语言，带有分支和循环，是Oracle数据库对SQL语句的扩展，在普通SQL语句的使用上增加了编程语言的特点
+
+
+
+### 7.01 基本语法
+
+- PL/SQL是一种块结构的语言，这意味着PL/SQL程序被划分和编写代码的逻辑块。每块由三个子部分组成：
+
+  - 声明：
+
+    此部分开头使用关键字DECLARE。它是一个可选的部分，并限定在该程序中使用的所有变量，游标，子程序，和其他元素。
+
+  - 可执行命令：
+
+    此部分是封闭关键字BEGIN和END，这是一个强制性的部分。它由程序的可执行文件的PL/SQL语句。它应具有至少一个可执行的代码行，这可能仅仅是一个空命令，以指示什么都不执行。
+
+  - 异常处理：
+
+    此部分开头使用关键字EXCEPTION。此部分又是可选的，含有异常，在程序处理错误中。
+
+- HelloWorld示例：
+
+```plsql
+set serveroutput on;	/*内部环境变量serveroutput默认关闭，打开后才能output*/
+declare
+	message varchar2(20);	/*声明一个varchar2类型的变量message*/
+begin
+	message := 'HelloWorld!';	/*给变量message赋值*/
+	dbms_output.put_line('HelloWorld!');	/*打印一行数据*/
+end;
+/
+```
+
+- exception示例：
+
+  ```plsql
+  declare
+  	v_num number := 0;
+  begin
+  	v_num := 2/v_num;	/*除数为0，会抛出异常*/
+  		dbms_output.put_line(v_num);
+  exception
+  	when others then	/*当其他情况出现时*/
+  		dbms_output.put_line('error');
+  end;
+  /
+  ```
+
+
+
+### 7.02 变量
+
+- 变量的声明规则：
+  - 变量名不能够使用保留字，如from、select等，**推荐使用前缀 v_ 来给变量命名**
+  - 第一个字符必须是字母
+  - 变量名最多包含30个字符
+  - 不要与数据库的表或者列同名
+  - 每一行只能声明一个变量
+- 常用变量类型
+  - binary_integer  整数，主要用来计数而不是用来表示字段类型
+  - number  数字类型
+  - char  定长字符串
+  - varchar2  变长字符串
+  - date  日期
+  - long  长字符串，最长2GB
+  - boolean  布尔类型，可以取值为true、false和null值，dbms_output.put_line不能打印boolean类型的值
+- 例1：
+
+```plsql
+declare
+	v_temp number(1);
+	v_count binary_integer := 0;
+	v_sal number(7, 2) := 4000.00;
+	v_date date := sysdate;	/*sysdate为当前日期*/
+	v_pi constant number(3, 2) := 3.14;	/*constant为常量，相当于java里的final*/
+	v_valid boolean := false;
+	v_name varchar2(20) not null := 'MyName';	/*not null非空限制*/
+begin
+	dbms_output.put_line('v_temp value' || v_temp);	/*||为连接符*/
+end;
+/
+```
+
+
+
+#### 使用%type属性：
+
+- 为了使一个变量的数据类型与另一个已经定义了的变量（尤其是表的某一列）的数据类型相一致，[Oracle](http://lib.csdn.net/base/oracle)提供了%TYPE定义方式。当被参照的那个变量的数据类型改变了之后，这个新定义的变量的数据类型会自动跟随其改变，容易保持一致，也不用修改PL/SQL程序了。当不能确切地知道被参照的那个变量的数据类型时，就只能采用这种方法定义变量的数据类型。
+
+```plsql
+declare
+	v_empno number(4);
+	v_empno2 emp.empno%type;	/*表示v_empno2的类型为emp表的empno字段的类型*/
+	v_empno3 v_empno2%type;		/*表示v_empno3的类型为v_empno2的类型*/
+```
+
+
+
+#### Record(记录)类型
+
+- 记录类型类似于C语言的结构体，它把逻辑相关的、分离的、基本数据类型的变量组成一个整体存储起来，它必须包括至少一个标量型或RECORD数据类型的成员，称作PL/SQL RECORD的域(FIELD)，其作用是存放互不相同但逻辑相关的信息。在使用记录数据类型变量时，需要先在声明部分先定义记录的组成、记录的变量，然后在执行部分引用该记录变量本身或其中的成员。 
+
+```plsql
+declare
+	type type_record_dept is record	/*声明 type_record_dept 为record类型*/
+	(
+      	deptno dept.deptno%type,
+		dname dept.dname%type,
+		loc dept.loc%type
+	);
+	v_temp type_record_dept;	/*声明v_temp为type_record_dept类型*/
+begin
+	v_temp.deptno := 50;
+	v_temp.dname := 'aaaa';
+	dbms_output.put_line(v_temp.deptno || ' ' || v_temp.dname);
+end;
+/
+```
+
+
+
+#### 使用%rowtype声明record变量
+
+- 为了使一个变量的数据类型与一个表中记录的各个列的数据类型相对应、一致，Oracle提供%ROWTYPE定义方式。当表的某些列的数据类型改变了之后，这个新定义的变量的数据类型会自动跟随其改变，容易保持一致，也不用修改PL/SQL程序了。当不能确切地知道被参照的那个表的结构及其数据类型时，就只能采用这种方法定义变量的数据类型。
+
+```plsql
+declare
+	v_temp dept%rowtype;	--声明一个recode变量v_temp，v_temp中的分量的变量名和类型与dept表中的相同
+begin
+	v_temp.deptno := 50;
+	v_temp.dname := 'aaaa';
+	v_temp.loc := 'bj';
+	dbms_output.put_line(v_temp.deptno || ' ' || v_temp.dname);
+end;
+/
+```
+
+
+
+### 7.03 PL/SQL块中SQL语句的运用
+
+#### DML语句
+
+- PL/SQL块中的select语句：
+
+  PL/SQL块中要使用select 语句，必须使用select into，并且选取结果只能有一行
+
+```plsql
+declare
+	v_name emp.ename%type;
+	v_sal emp.sal%type;
+begin
+	select ename, sal into v_name, v_sal from emp where empno = 7369;	--into是把取出来的ename和sal分别放到v_name和v_sal里面
+	dbms_output.put_line(v_name || ' ' || v_sal);
+end;
+/
+```
+
+```plsql
+declare
+	v_emp emp%rowtype;
+begin
+	select * into v_emp from emp where empno = 7369;
+	dbms_output.put_line(v_emp.ename);
+end;
+/
+```
+
+#### 
+
+- insert语句、update语句、delete语句在PL/SQL语句块中的用法没有变化，只是有可能会使用变量
+- insert语句：
+
+```plsql
+declare
+	v_deptno dept.deptno%type := 50;
+	v_dname dept.dname%type := 'aaaa';
+	v_loc dept.loc%type := 'bj';
+begin
+	insert into dept2 values (v_deptno, d_name, v_loc);
+	commit;
+end;
+/
+```
+
+- update语句：
+
+```plsql
+declare
+	v_deptno emp2.deptno%type := 50;
+	v_count number;
+begin
+	update emp2 set sal = sal/2 where deptno = v_deptno;
+	dbms_output.putline(sql%rowcount || '条记录被影响');	--sql是一个关键字，代表刚才执行的这条语句，rowcount是sql的一个属性，记录刚才的语句影响的行数
+	commit;
+end;
+/
+```
+
+
+
+#### DDL语句
+
+- PL/SQL块中不能直接发出DDL语句，使用DDL语句需要加上execute immediate(立即执行)，让DDL语句逃离开编译时Compile的检验过程
+
+```plsql
+begin
+	execute immediate 'create table T(nnn varchar2(20) default ''aaa'')';
+end;
+/
+```
+
+
+
+### 7.04 if 语句
+
+- if语句以 if 开头，end if 结束
+
+```plsql
+declare
+	v_sal emp.sal%type;
+begin
+	select sal into v_sal from emp where empno = 7369;
+	if (v_sal < 1200) then
+		dbms_output.put_line('low');
+	elsif (v_sal < 2000) then
+		dbms_output.put_line('middle');
+	else
+		dbms_output.put_line('high');
+	end if;
+end;
+/
+```
+
+
+
+### 7.05 循环
+
+- 循环以loop开头，以end loop结束
+
+```plsql
+declare
+	i binary_integer := 1;
+begin
+	loop
+		dbms_output.put_line(i);
+		i := i + 1;
+		exit when(i > 11);	--当i>11时退出
+	end loop;
+end;
+/
+```
+
+- where循环
+
+```plsql
+declare
+	j binary_integer := 1;
+begin
+	while j < 11 loop
+		dbms_output.put_line(j);
+		j := j + 1;
+	end loop;
+end;
+/
+```
+
+- for循环
+
+```plsql
+begin
+	for k in 1..10 loop
+		dbms_output.put_line(k);	--输出1到10
+	end loop;
+
+	for k in reverse 1..10 loop	--reverse的意思是逆序，即k是从10到1循环
+		dbms_output.put_line(k);	--输出10到1
+	end loop;
+end;
+/
+```
+
