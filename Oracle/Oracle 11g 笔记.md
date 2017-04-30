@@ -798,3 +798,105 @@ end;
 /
 ```
 
+
+
+### 7.06 错误处理
+
+- 例：too_many_rows
+
+```plsql
+declare
+	v_temp number(4);
+begin
+	select empno into v_temp from emp where deptno = 10;
+exception
+	when too_many_rows then		--too_many_row 实际返回行数大于请求行数
+		dbms_output.put_line('太多记录了');
+	when others then	--当其他异常产生时
+		dbms_output.put_line('error');
+end;
+/
+```
+
+- 例：no_data_found
+
+```plsql
+declare
+	v_temp number(4);
+begin
+	select empno into v_temp from emp where empno = 2222;
+exception
+	when no_data_found then		--no_data_found 没找到数据
+		dbms_output.put_line('没数据');
+end;
+/
+```
+
+- 处理错误的常用做法：
+
+```plsql
+create table errorlog
+(
+	id number primary key,
+	errcode number,		--错误代码
+  	errmsg varchar2(1024),	--错误信息
+  	errdate date	--错误日期
+);
+
+create sequence seq_errorlog_id start with 1 increment by 1;	--创建一个序列seq_errorlog_id，从1开始，每次递增1
+
+declare
+	v_deptno dept.deptno%type := 10;
+	v_errcode number;
+	v_errmsg varchar(1024);
+begin
+	delete from dept where deptno = v_deptno;
+	commit;
+exception
+	when others then
+		rollback;
+			v_errcode := SQLCODE;	--SQLCODE关键字，代表出错代码
+			v_errmsg := SQLERRM;	--SQLERRM关键字，代表出错信息
+		insert into errorlog(id, errcode, errmsg, errdate) values(seq_errorlog_id.nextval, v_errcode, v_errmsg, sysdate);
+		commit;
+end;
+/
+```
+
+
+
+### 7.07 cursor游标
+
+```plsql
+declare
+	cursor c is		--声明游标c，指向select产生的结果集
+		select * from emp;
+	v_emp c%rowtype;
+begin
+	open c;	--打开游标c，只有打开游标后，才会执行声明游标时的select语句，把select产生的结果集放入内存
+		fetch c into v_emp;	--把游标c当前指向的内容赋给v_emp
+		dbms_output.put_line(v_emp.ename);
+	close c;
+end;
+/
+```
+
+- 简单循环遍历游标
+
+```plsql
+declare
+	cursor c is
+		select * from emp;
+	v_emp c%rowtype;
+begin
+	open c;
+    loop
+        fetch c into v_emp;
+        exit when (c%notfound);	--notfound为游标的一个属性，找不到记录则为true
+        dbms_output.put_line(v_emp.ename);
+    end loop;
+	close c;
+end;
+/
+```
+
