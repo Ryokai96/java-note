@@ -900,3 +900,271 @@ end;
 /
 ```
 
+- while循环遍历游标
+
+```plsql
+declare
+	cursor c is
+		select * from emp;
+	v_emp emp%rowtype;
+begin
+	open c;
+	fetch c into v_emp;
+	while(c%found) loop	--found为游标的一个属性，有记录则为true
+		dbms_output.put_line(v_emp.ename);
+		fetch c into v_emp;
+	end loop;
+	close c;
+end;
+/
+```
+
+- for循环
+
+```plsql
+declare
+	cursor c(v_deptno emp.deptno%type, v_job emp.job%type)	--给了两个形参
+	is 
+		select ename, sal from emp where deptno = v_deptno and job = v_job;
+begin
+	for v_temp in c(30, 'CLERK') loop
+		dbms_output.put_line(v_temp.ename);
+	end loop;
+end;
+/
+```
+
+- 可更新的游标
+
+```plsql
+declare
+	cursor c
+	is
+		select * from emp2 for update;	--for update 为了更新才使用的游标
+begin
+	for v_temp in c loop
+		if (v_temp.sal < 2000) then
+			update emp2 set sal = sal * 2 where current of c;	--current of c 游标当前指向的内容
+		elsif (v_temp.sal = 5000) then	--注意：判断是否相等使用 = 而不是 ==
+			delete from emp2 where current of c;
+		end if;
+	end loop;
+	commit;
+end;
+/
+```
+
+
+
+### 7.08 存储过程procedure
+
+- 创建存储过程
+
+```plsql
+create or replace procedure p	--创建或替换(如果没有则创建，有则替换)存储过程p
+is
+	cursor c is
+		select * from emp2 for update;
+begin
+	for v_emp in c loop
+		if(v_emp.deptno = 10) then
+			update emp2 set sal = sal + 10 where current of c;
+		elsif (v_emp.deptno = 20) then
+			update emp2 set sal = sal + 20 where current of c;
+		else
+			update emp2 set sal = sal + 50 where current of c;
+		end if;
+	end loop;
+	commit;
+end;
+/
+```
+
+- 执行存储过程
+
+```plsql
+exec p;	--执行存储过程p
+```
+
+​	或：
+
+```plsql
+begin
+	p;
+end;
+/
+```
+
+- 带参数的存储过程
+
+  - in 传入参数：由调用环境传入给存储过程的参数，**默认为 in**
+  - out 传出参数：由存储过程传出给调用环境的参数
+  - in out 即传入又传出
+
+  创建带参数存储过程：
+
+```plsql
+create or replace procedure p
+	(v_a in number, v_b number, v_ret out number, v_temp in out number)	--v_a为传入参数，v_b为传入参数，v_ret为传出参数，v_temp为即传入又传出参数
+is
+begin
+	if(v_a > v_b) then
+		v_ret := v_a;
+	else
+		v_ret := v_b;
+	end if;
+	v_temp := v_temp + 1;
+end;
+/
+```
+
+​	上述带参数存储过程的执行：
+
+```plsql
+declare
+	v_a number := 3;
+	v_b number := 4;
+	v_ret number;
+	v_temp number := 5;
+begin
+	p(v_a, v_b, v_ret, v_temp);
+	dbms_output.put_line(v_ret);
+	dbms_output.put_line(v_temp);
+end;
+/
+```
+
+- 删除存储过程
+
+```plsql
+drop procedure p;
+```
+
+
+
+### 7.09 函数function
+
+- 创建函数
+
+```plsql
+create or replace function sal_tax
+	(v_sal number)
+	return number
+is
+begin
+	if(v_sal < 2000) then
+		return 0.10;
+	elsif(v_sal < 2750) then
+		return 0.15;
+	else
+		return 0.20;
+	end if;
+end;
+/
+```
+
+- 函数的使用
+
+```plsql
+select lower(ename), sal_tax(sal) from emp;
+```
+
+
+
+### 7.10 触发器 trigger
+
+```plsql
+--创建表emp2_log
+create table emp2_log
+(
+	uname varchar2(20),
+  	action varchar2(10),
+  	atime date
+);
+
+--创建触发器trig
+create or replace trigger trig
+	after insert or delete or update on emp2	--指定触发器trig触发的时机，after是在insert、delete、update操作之后触发，如果写begin，则是在操作前触发
+begin
+	if inserting then
+		insert into emp2_log values(USER, 'insert', sysdate);	--USER关键字，代表当前用户用户名
+	elsif updating then
+		insert into emp2_log values(USER, 'update', sysdate);
+	elsif deleting then
+		insert into emp2_log values(USER, 'delete', sysdate);
+	end if;
+end;
+/
+```
+
+
+
+### 7.11 树状结构的存储与展示
+
+```plsql
+create table article
+(
+	id number primary key,
+  	cont varchar2(4000),
+  	pid number,	--父id
+  	isleaf number(1),	--0代表非叶子节点，1代表叶子节点
+  	alevel number(2)	--代表树状结构第几层
+);
+
+insert into article values (1, '蚂蚁大战大象', 0, 0, 0);
+insert into article values (2, '大象被打趴下了', 1, 0, 1);
+insert into article values (3, '蚂蚁也不好过', 2, 1, 2);
+insert into article values (4, '瞎说', 2, 0, 2);
+insert into article values (5, '没有瞎说', 4, 1, 3);
+insert into article values (6, '怎么可能', 1, 0, 1);
+insert into article values (7, '怎么没可能', 6, 1, 2);
+insert into article values (8, '可能性是很大的', 6, 1, 2);
+insert into article values (9, '大象进医院了', 2, 0, 2);
+insert into article values (10, '护士是蚂蚁', 9, 1, 3);
+commit;
+```
+
+> 蚂蚁大战大象
+>
+> ​	大象被打趴下了
+>
+> ​		蚂蚁也不好过
+>
+> ​		瞎说
+>
+> ​			没有瞎说
+>
+> ​		大象进医院了
+>
+> ​			护士是蚂蚁
+>
+> ​	怎么可能
+>
+> ​		怎么不可能
+>
+> ​		可能性是很大的
+
+- 创建存储过程来展示树状结构
+
+```plsql
+create or replace procedure p (v_pid article.pid%type, v_level binary_integer)
+is
+	cursor c is
+		select * from article where pid = v_pid;
+	v_preStr varchar2(1024) := '';	--用于打印*显示缩进效果
+begin
+	for i in 0..v_level loop
+		v_preStr := v_preStr || '****';
+	end loop;
+	for v_article in c loop
+		dbms_output.put_line(v_preStr || v_article.cont);
+		if(v_article.isleaf = 0) then
+			p (v_article.id, v_level + 1);	--递归调用
+		end if;
+	end loop;
+end;
+/
+
+exec p(0, 0);	--执行存储过程
+```
+
