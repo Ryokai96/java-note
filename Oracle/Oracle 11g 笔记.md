@@ -222,6 +222,8 @@ select ename,sal from emp order by sal desc;  /*按照sal的值降序输出
 
 
 
+
+
 ### 3.06 SQL 1999
 
 - SQL 1999的思想: where语句中只写数据过滤条件，不写表的连接条件
@@ -699,7 +701,7 @@ end;
 /
 ```
 
-#### 
+
 
 - insert语句、update语句、delete语句在PL/SQL语句块中的用法没有变化，只是有可能会使用变量
 - insert语句：
