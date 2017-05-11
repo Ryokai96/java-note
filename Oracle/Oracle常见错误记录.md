@@ -1,19 +1,4 @@
----
-title: Oracle常见错误记录
-date: 2017-05-10 16:08:30
-tags: [Oracle, errors]
-categories: Oracle
-keywords: Oracle常见错误, Oracle error, Oracle个人记录
-description: 记录个人使用Oracle时出现的错误
----
-
-在使用Oracle的时候，发现以前碰到的错误过了一段时间就会忘，忘了就继续出错 - - !
-
-特开一贴，记录犯过的错误
-
-另外吐槽一下Oracle的中文错误提示真的太变态了，看的人根本摸不着头脑，不知道英文的如何
-
-
+[TOC]
 
 #### ORA-00937: 不是单组分组函数
 
