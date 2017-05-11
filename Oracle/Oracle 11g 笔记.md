@@ -205,6 +205,21 @@ select avg(sal) from emp group by deptno having avg(sal) > 2000;  /*按照deptno
 select ename,sal from emp order by sal desc;  /*按照sal的值降序输出
 ```
 
+- Oracle在order by时认为null是最大值，所以如果是ASC升序则排在最后，DESC降序则排在最前。可以使用nulls first 或者nulls last 语法来控制NULL的位置
+
+  - 如果Order by 中指定了表达式Nulls first则表示null值的记录将排在最前(不管是asc 还是 desc)
+
+  - 如果Order by 中指定了表达式Nulls last则表示null值的记录将排在最后 (不管是asc 还是 desc)
+
+  - 语法如下
+
+    ```plsql
+    select * from emp2 order by sal nulls first;
+    select * from emp2 order by sal nulls last;
+    ```
+
+- **注意：order by一般不在子查询中使用，因为这么做没有实际意义，即使用了数据库系统也不会在子查询中进行order by操作，因为它也觉得这么做没有必要；但是在和rownum一起使用时，子查询的结果会影响到最终返回的结果集，在这种情况下，order by必须写在子查询中**
+
 
 
 ### 3.06 SQL 1999
