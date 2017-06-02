@@ -1,0 +1,1 @@
+主要说明MySQL和Oracle的不同之处

@@ -1,5 +1,7 @@
 # JDBC 学习笔记
 
+[TOC]
+
 ## 1. JDBC初步
 
 ### 1.01 JDBC定义
@@ -471,7 +473,7 @@ public class TestTransaction {
 
 
 
-### 2.05 JDBC处理可滚动的结果集
+### 2.05 JDBC处理可滚动的结果集(Movable ResultSet)
 
 #### 示例: TestScroll.java
 
@@ -533,4 +535,88 @@ public class TestScroll {
 	}
 }
 ```
+
+
+
+### 2.06 JDBC处理可更新的结果集(Updatable ResultSet)
+
+#### 示例: TestUpdateRs.java
+
+```java
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+public class TestUpdateRs {
+
+	public static void main(String[] args) {
+		Connection conn = null;
+		Statement stmt = null;
+		ResultSet rs = null;
+		try {
+			Class.forName("oracle.jdbc.driver.OracleDriver");
+			conn = DriverManager.getConnection("jdbc:oracle:thin:@localhost:1521:orcl", "ryoukai", "ryoukai");
+			stmt = conn.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, //设置对滚动不敏感
+										ResultSet.CONCUR_UPDATABLE);	//并发访问时可以进行更新
+			rs = stmt.executeQuery("select * from student order by S#");
+			rs.next();	//定位到下一个
+			rs.updateString("SNAME", "AAAA");	//把这一行的SNAME字段的数据更新为AAAA
+			rs.updateRow();//更新这一行到数据库中
+			
+			rs.moveToInsertRow();	//在结果集的最后一行后有一行InsertRow，可以往这一行插入数据，现在移动到这一行
+			rs.updateInt(1, 9999);	//把第一个字段设置为9999
+			rs.updateString("SNAME", "BBBB");	//把SNAME字段设置为BBBB
+			rs.updateInt("SAGE", 20);	//把SAGE字段设置为20
+			rs.updateString("SSEX", "m");	//把SSEX字段设置为n
+			rs.insertRow();//插入这一行岛数据库中
+			
+			rs.moveToCurrentRow();	//将光标移动到新建的行
+			
+			rs.absolute(5);	//绝对定位到第5行
+			rs.deleteRow();//删除这一行
+			
+		} catch (ClassNotFoundException e) {
+			e.printStackTrace();
+		} catch (SQLException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if(rs != null) {
+					rs.close();
+					rs = null;
+				}
+				if(stmt != null) {
+					stmt.close();
+					stmt = null;
+				}
+				if(conn != null) {
+					conn.close();
+					conn = null;
+				}
+			} catch(SQLException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+}
+
+```
+
+
+
+### 2.07 DateSource & RowSet
+
+- DataSource
+  - DriverManager的替代
+  - 方便的实现连接池
+  - 分布式的实现
+    - DataSource的属性可以动态改变
+- RowSet
+  - 新的ResultSet
+  - 从ResultSet继承
+  - 支持断开的结果集
+  - 支持JavaBean的标准
 
