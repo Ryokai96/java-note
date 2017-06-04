@@ -101,6 +101,7 @@
         arr[1] = 2;
         arr[2] = 3;
         arr[3] = 4;
+        var arr2 = new Array(2, 3, 4, 5);
     </script>
 </head>
 <body>
@@ -108,9 +109,214 @@
     document.write(arr[3] + "<br>");	//4
     document.write(arr.length + "<br>");	//4
     arr.length = 10;
-    document.write(arr.length);	//10
+    document.write(arr.length + "<br>");	//10
+    var i = 0;
+    for(i = 0; i < arr2.length; i++) {
+        document.write(arr2[i] + "<br>");	//2 3 4 5
+    }
 </script>
 </body>
 </html>
 ```
+
+
+
+### 2.03 字符串
+
+#### 示例: TestString.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>字符串操作</title>
+    <script language="JavaScript">
+        var hello, greeting;
+        hello = "Hello!";
+        greeting = "Welcome to the JS!";
+    </script>
+</head>
+<body>
+<script language="JavaScript">
+    document.write(hello + greeting + "<br>");   //字符串拼接
+    document.write(greeting.substring(3, 9) + "<br>");   //字符串截取，截取从第4个字符起到第九个字符，所以这里输出的是 come t
+    var i = 0;
+    while(i < greeting.length) {
+        document.write(greeting.charAt(i) + "<br>");    //greeting.charAt(i)表示greeting的第i个字符
+    }
+</script>
+</body>
+</html>
+```
+
+
+
+### 2.04 函数
+
+#### 示例: TestFunc.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>函数</title>
+    <script language="JavaScript">
+        function test() {   //不带参数
+            document.write("a");
+            document.write("b");
+        }
+        function test2(x) { //带参数
+            document.write(x);
+        }
+        function test3(y) { //带参数和返回值
+            return y * 3.14;
+        }
+    </script>
+</head>
+<body>
+<script language="JavaScript">
+    test();
+    test2("Hey Ryoukai!");
+    document.write(test3(2));
+</script>
+</body>
+</html>
+```
+
+
+
+### 2.05 JavaScript事件处理
+
+- OnFocus: 事件在对象获得焦点时发生
+
+#### 示例: TestOnFocus.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>OnFocus</title>
+</head>
+<body>
+<form action="" name="test">
+    <!-- onfocus事件在对象获得焦点时发生 -->
+    <input type="text" name="userName" value="SXT" onfocus="JavaScript:alert(document.test.userName.value);">
+</form>
+</body>
+</html>
+```
+
+
+
+- onclick: 事件会在对象被点击时发生
+
+#### TestOnClick.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>OnClick</title>
+</head>
+<body>
+<!--onclick 事件会在对象被点击时发生-->
+<img src="https://ss1.bdstatic.com/70cFuXSh_Q1YnxGkpoWK1HF6hhy/it/u=1839352044,827442581&fm=117&gp=0.jpg" onclick="alert('ok');">
+</body>
+</html>
+```
+
+
+
+- onload、onunload:
+  -  onload 属性在对象已加载时触发
+  - onunload 事件在用户退出页面时发生
+
+#### 示例: TestOnLoad.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>OnLoad</title>
+</head>
+<!--onload 属性在对象已加载时触发，onunload 事件在用户退出页面时发生-->
+<body onload="javascript:alert('hello');" onunload="javascript:alert('bye-bye');">
+    你好
+</body>
+</html>
+```
+
+
+
+- onmouseover、onmouseout: 
+  - onmouseover 属性在鼠标指针移动到元素上时触发
+  - onmouseout 事件会在鼠标指针移出指定的对象时发生
+
+#### 示例: TestOnMouse.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>OnMouse</title>
+</head>
+<body>
+<!--onmouseover 属性在鼠标指针移动到元素上时触发，onmouseout 事件会在鼠标指针移出指定的对象时发生-->
+<img src="https://ss1.bdstatic.com/70cFuXSh_Q1YnxGkpoWK1HF6hhy/it/u=1839352044,827442581&fm=117&gp=0.jpg" onmouseover="alert('over')" onmouseout="alert('out')">
+</body>
+</html>
+```
+
+
+
+- onselect: onselect 事件会在文本框中的文本被选中时发生
+
+#### 示例: TestOnSelect.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>OnSelect</title>
+</head>
+<body>
+<!--onselect 事件会在文本框中的文本被选中时发生-->
+<input type="text" value="SXT" onselect="alert('ok')">
+</body>
+</html>
+```
+
+
+
+- onsubmit: onsubmit 事件会在表单中的确认按钮被点击时发生
+
+#### 示例: OnSubmit.html
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>OnSubmit</title>
+</head>
+<body>
+<!--onsubmit 事件会在表单中的确认按钮被点击时发生-->
+<form action="TestJavaScript.html" onsubmit="return false">
+    <!--会根据onsubmit返回值来决定是否提交，这里return false，则表单不会提交，也就不会跳转到TestJavaScript.html页面-->
+    <input type="submit" value="ok">
+</form>
+</body>
+</html>
+```
+
+
+
+## 3. DOM、BOM
 
