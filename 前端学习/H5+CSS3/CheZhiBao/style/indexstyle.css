@@ -1,0 +1,965 @@
+*{
+    margin: 0;
+    padding: 0;
+}
+
+ul{
+    list-style: none;
+}
+
+a{
+    text-decoration: none;
+}
+
+body{
+    background: #f7f7f7;
+}
+
+#header .headtop{
+    width: 100%;
+    height: 35px;
+    line-height: 35px;
+    background: #333333;
+}
+
+#header .headtop .headcenter{
+    width: 1200px;
+    margin: 0 auto;
+}
+
+#header .headtop .headcenter .left{
+    color: #ddd;
+    font-size: 12px;
+    float: left;
+    display: inline-block;
+}
+
+#header .headtop .headcenter .right{
+    height: 35px;
+    float: right;
+    display: inline-block;
+}
+
+#header .headtop .headcenter .right li{
+    float: left;
+    margin-left: 40px;
+    display: inline-block;
+    position: relative;
+    bottom: 2px;
+}
+
+#header .headtop .headcenter .right li a{
+    color: #ddd;
+    font-size: 12px;
+}
+
+#header .headtop .headcenter .right .active a{
+    color: #209eff;
+}
+
+#header .headtop .headcenter .right .mobile{
+    position: relative;
+    top: 3px;
+    right: 2px;
+}
+
+#header .headbottom{
+    width: 100%;
+    height: 70px;
+    border-bottom: 4px solid #278bdd;
+    background-color: #fff;
+}
+
+#header .headbottom .headcenter{
+    width: 1200px;
+    margin: 0 auto;
+    position: relative;
+}
+
+#header .headbottom .headcenter .left{
+    width: 370px;
+    height: 70px;
+    float: left;
+    display: inline-block;
+}
+
+#header .headbottom .headcenter .left .logo{
+    width: 200px;
+    height: 70px;
+    float: left;
+    display: inline-block;
+    background: url(../images/logo.png) no-repeat center;
+}
+
+#header .headbottom .headcenter .center{
+    line-height: 70px;
+    float: left;
+    display: inline-block;
+}
+
+#header .headbottom .headcenter .center li{
+    float: left;
+    display: inline-block;
+}
+
+#header .headbottom .headcenter .center li a{
+    display: inline-block;
+    float: left;
+    color: #222;
+    font-size: 16px;
+    padding: 0 20px;
+}
+
+#header .headbottom .headcenter .center li a.active{
+    background-color: #278bdd;
+    color: #fff;
+}
+
+#header .headbottom .headcenter .center li a:hover{
+    background-color: #278bdd;
+    color: #fff;
+}
+
+#header .headbottom .headcenter .right{
+    display: inline-block;
+    width: 190px;
+    height: 70px;
+    position: absolute;
+    top: 10px;
+    right: 0;
+}
+
+#header .headbottom .headcenter .right .topTellIcon{
+    display: inline-block;
+    background: url("../images/topTellIcon.png") no-repeat;
+    width: 30px;
+    height: 50px;
+    float: right;
+}
+
+#header .headbottom .headcenter .right .box{
+    display: inline-block;
+    float: right;
+    height: 50px;
+    text-align: right;
+}
+
+#header .headbottom .headcenter .right .box h2{
+    font-size: 22px;
+    color: #f60;
+    margin: 0;
+}
+
+#header .headbottom .headcenter .right .box h3{
+    font-size: 12px;
+    color: #999;
+    margin: 0;
+}
+
+#scrollcenter{
+    width: 100%;
+    height: 350px;
+    background-color: rgb(238, 239, 243);
+}
+
+#scrollcenter .imgDiv{
+    width: 1200px;
+    height: 350px;
+    background: url("../images/16fcd203bce4a3fb.jpg") no-repeat;
+    margin: 0 auto;
+    position: relative;
+}
+
+#scrollcenter .imgForm{
+    background-color: #fff;
+    border-top:1px solid #278bdd;
+    width: 280px;
+    height: 315px;
+    float: right;
+    position: absolute;
+    top: 18px;
+    right: 0;
+}
+
+#scrollcenter .formDiv{
+    height: 271px;
+    width: 230px;
+    margin: 0 auto;
+}
+
+#scrollcenter .formDiv p.top{
+    color: #666;
+    font-size: 14px;
+    margin: 15px auto 0;
+}
+
+#scrollcenter .formDiv p.top strong{
+    color: #f60;
+}
+
+#scrollcenter .formDiv input{
+    width: 100%;
+    height: 40px;
+    margin: 15px auto 0;
+    color: #999;
+    font-size: 14px;
+    background-color: #edf0f2;
+    border: none;
+    text-indent: 10px;
+}
+
+#scrollcenter .imgForm p.bottom{
+    font-size: 12px;
+    margin: 15px auto;
+    color: #666;
+}
+
+#scrollcenter .formDiv button{
+    font-size: 18px;
+    width: 100%;
+    height: 40px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    color: #fff;
+    background-color: #278bdd;
+}
+
+#box .boxcenter{
+    background: url("../images/indexAdvBg1.png") no-repeat;
+    width: 1200px;
+    height: 143px;
+    margin: 20px auto 0;
+}
+
+#box .boxcenter div{
+    display: inline-block;
+    height: 83px;
+}
+
+#box .box1{
+    padding-left: 65px;
+    width: 225px;
+}
+
+#box .box2{
+    padding-left: 77px;
+    width: 225px;
+}
+
+#box .box3{
+    padding-left: 70px;
+    width: 225px;
+}
+
+#box .box4{
+    padding-left: 70px;
+}
+
+#box .boxcenter li{
+    font-size: 14px;
+    color: #888;
+    text-indent: 30px;
+    height: 25px;
+    position: relative;
+    top: 40px;
+}
+
+#box .boxcenter li.boxTitle{
+    font-size: 18px;
+    color: #278bdd;
+    height: 24px;
+    top: 30px;
+}
+
+#bid{
+    width: 100%;
+}
+
+#bid .center{
+    width: 1200px;
+    margin: 30px auto;
+}
+
+#bid .top{
+    width: 100%;
+    height: 20px;
+    line-height: 20px;
+}
+
+#bid .top .left{
+    display: inline-block;
+    float: left;
+}
+
+#bid .top .left .title{
+    font-size: 20px;
+    color: #222;
+    display: inline-block;
+    float: left;
+}
+
+#bid .top .left .title span{
+    color: #666;
+    margin: 0 10px;
+}
+
+#bid .top .left .number{
+    display: inline-block;
+    padding-left: 5px;
+}
+
+#bid .top .left .number i{
+    width: 20px;
+    height: 20px;
+    line-height: 20px;
+    text-align: center;
+    background-color: #1d89e1;
+    color: #fff;
+    border-radius: 3px;
+    font-style: normal !important;
+    margin-right: 5px;
+    display: inline-block;
+    float: left;
+}
+
+#bid .top .right{
+    display: inline-block;
+    float: right;
+}
+
+#bid .top .right .more{
+    font-size: 12px;
+    display: inline-block;
+    float: right;
+}
+
+#bid .top .right .more a{
+    color: #666;
+}
+
+#bid .top .right .more a:hover{
+    color: #278bdd;
+}
+
+#bid .top .right .next{
+    display: inline-block;
+    float: right;
+    width: 55px;
+    margin-right: 10px;
+}
+
+#bid .top .right .tral1{
+    background: url("../images/indexTopNameLev.png") no-repeat #1d89e0;
+    display: inline-block;
+    float: right;
+    width: 20px;
+    height: 20px;
+    border-radius: 2px;
+}
+
+#bid .top .right .tral2{
+    background: url("../images/indexTopNameLev.png") no-repeat #1d89e0;
+    display: inline-block;
+    float: right;
+    width: 20px;
+    height: 20px;
+    border-radius: 2px;
+    -webkit-transform: rotate(180deg);
+    -moz-transform: rotate(180deg);
+    -ms-transform: rotate(180deg);
+    -o-transform: rotate(180deg);
+    transform: rotate(180deg);
+    margin-right: 10px;
+}
+
+#bid .container{
+    width: 1200px;
+    height: 426px;
+    margin: 10px auto 0;
+}
+
+#bid .container figure{
+    width: 588px;
+    height: 120px;
+    display: inline-block;
+    float: left;
+    padding: 10px 0 10px 10px;
+    border: 1px solid #d0d0d0;
+}
+
+#bid .container .carImg{
+    width: 215px;
+    height: 120px;
+    float: left;
+    border: 0;
+}
+
+#bid .container figure figcaption{
+    float: left;
+    display: inline-block;
+    margin-left: 20px;
+}
+
+#bid .container figure figcaption h2{
+    overflow: hidden;
+    font-size: 100%;
+    font-weight: 500;
+}
+
+#bid .container .carGrade{
+    height: 20px;
+    width: 27px;
+    padding-left: 25px;
+    line-height: 20px;
+    color: #278bdd;
+    background: url("../images/indexCarLv.jpg");
+    margin-right: 10px;
+    font-size: 12px;
+    display: inline-block;
+    float: left;
+}
+
+#bid .container .carName{
+    display: inline-block;
+    float: left;
+    font-size: 16px;
+    color: #222;
+    height: 20px;
+    line-height: 20px;
+}
+
+#bid .container figure figcaption ul{
+    overflow: hidden;
+    width: 343.5px;
+    margin-top: 10px;
+    border-bottom: 1px dashed #ccc;
+}
+
+#bid .container .image1{
+    background: url("../images/indexCarLabAll.png") no-repeat;
+    display: inline-block;
+    float: left;
+    width: 20px;
+    height: 20px;
+    margin-right: 5px;
+}
+
+#bid .container .image2{
+    background: url("../images/indexCarLabAll.png") no-repeat;
+    display: inline-block;
+    float: left;
+    width: 20px;
+    height: 20px;
+    margin-right: 5px;
+    background-position: 0 -20px;
+}
+
+#bid .container .image3{
+    background: url("../images/indexCarLabAll.png") no-repeat;
+    display: inline-block;
+    float: left;
+    width: 20px;
+    height: 20px;
+    margin-right: 5px;
+    background-position: 0 -40px;
+}
+
+#bid .container .image4{
+    background: url("../images/indexCarLabAll.png") no-repeat;
+    display: inline-block;
+    float: left;
+    width: 20px;
+    height: 20px;
+    margin-right: 5px;
+    background-position: 0 -60px;
+}
+
+#bid .container figcaption ul li{
+    display: inline-block;
+    float: left;
+    width: 170px;
+    height: 20px;
+    line-height: 20px;
+    margin-bottom: 5px;
+}
+
+#bid .container figcaption ul li span{
+    font-size: 12px;
+    line-height: 22px;
+    vertical-align: top;
+}
+
+#bid .container .lab{
+    display: inline-block;
+    float: left;
+    color: #999;
+    margin-right: 5px;
+}
+
+#bid .container figcaption ul li time{
+    font-size: 12px;
+    line-height: 22px;
+    vertical-align: top;
+}
+
+#bid .container figcaption div{
+    margin-top: 5px;
+    font-size: 12px;
+    position: relative;
+    color: #666;
+}
+
+#bid .container .personImg{
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    display: inline-block;
+    float: left;
+}
+
+#bid .container figcaption div span{
+    display: inline-block;
+    float: left;
+    height: 35px;
+    line-height: 35px;
+    margin-left: 10px;
+}
+
+#bid .container figcaption div span strong{
+    color: #f60;
+}
+
+#bid .container .showSellNum{
+    display: inline-block;
+    position: absolute;
+    right: 0;
+    top: 0;
+    height: 35px;
+    line-height: 35px;
+}
+
+#sellCarButton{
+    width: 100%;
+    margin: 25px auto;
+    height: 40px;
+}
+
+#sellCarButton button{
+    display: block;
+    width: 230px;
+    height: 40px;
+    line-height: 40px;
+    font-size: 18px;
+    color: #fff;
+    background-color: #278bdd;
+    border: 0;
+    border-radius: 3px;
+    text-align: center;
+    margin: 0 auto;
+    cursor: pointer;
+}
+
+#counselor{
+    height: 262px;
+    width: 1200px;
+    margin: 0 auto;
+    position: relative;
+}
+
+#counselor .coun{
+    display: inline-block;
+    width: 583px;
+    height: 212px;
+    padding: 48px 0 0 210px;
+    float: left;
+    border: 1px solid #ddd;
+    background: url("../images/indexLrImgLeft.jpg");
+    position: relative;
+    background-size: 793px 260px;
+    border-right: 0;
+}
+
+#counselor .coun .girl{
+    position: absolute;
+    left: 10px;
+    bottom: 0;
+    width: 167px;
+    height: 229px;
+}
+
+#counselor .coun h2{
+    font-size: 20px;
+    color: #222;
+    margin-bottom: 10px;
+    font-weight: normal;
+}
+
+#counselor .coun h3{
+    width: 583px;
+    font-size: 14px;
+    color: #333;
+    line-height: 26px;
+    font-weight: normal;
+}
+
+#counselor .coun h3 span{
+    margin-right: 50px;
+}
+
+#counselor .coun .imgBar{
+    position: absolute;
+    width: 550px;
+    height: 65px;
+    bottom: 50px;
+}
+
+#counselor .coun .imgBar .pre{
+    display: inline-block;
+    float: left;
+    height: 65px;
+    width: 30px;
+    background: url("../images/indexKfLeft.png");
+    cursor: pointer;
+}
+
+#counselor .coun .imgBar .counImg{
+    display: inline-block;
+    float: left;
+    width: 490px;
+    height: 65px;
+    position: relative;
+}
+
+#counselor .coun .imgBar .counImg .counBox{
+    display: inline-block;
+    float: left;
+    height: 65px;
+    width: 160px;
+    margin-left: 3px;
+}
+
+#counselor .coun .imgBar .counImg .counBox img{
+    display: inline-block;
+    float: left;
+    width: 65px;
+    height: 65px;
+    border-radius: 50%;
+}
+
+#counselor .coun .imgBar .counImg .counBox h4{
+    display: inline-block;
+    float: left;
+    font-size: 12px;
+    color: #666;
+    padding: 5px 10px;
+    line-height: 20px;
+    font-weight: normal;
+}
+
+#counselor .coun .imgBar .next{
+    display: inline-block;
+    height: 65px;
+    width: 30px;
+    position: absolute;
+    top: 0;
+    right: 0;
+    background: url("../images/indexKfRight.png");
+    cursor: pointer;
+}
+
+#counselor .server{
+    width: 193px;
+    height: 212px;
+    padding: 48px 210px 0 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+    border: 1px solid #ddd;
+    background: url("../images/indexLrImgRight.jpg");
+    background-size: 793px 260px;
+}
+
+#counselor .server .guy{
+    display: inline-block;
+    position: absolute;
+    right: 10px;
+    bottom: 0;
+    width: 229px;
+    height: 229px;
+}
+
+#counselor .server h2{
+    width: 193px;
+    margin-left: 35px;
+    font-size: 20px;
+    font-weight: normal;
+    color: #222;
+    margin-bottom: 10px;
+}
+
+#counselor .server h3{
+    width: 193px;
+    margin-left: 35px;
+    font-size: 14px;
+    font-weight: normal;
+    color: #333;
+    line-height: 26px;
+}
+
+#showHistory{
+    margin: 30px auto 0;
+    width: 1200px;
+    position: relative;
+}
+
+#showHistory .top{
+    position: relative;
+    height: 20px;
+    line-height: 20px;
+    width: 1200px;
+}
+
+#showHistory .top p{
+    display: inline-block;
+    float: left;
+    font-size: 20px;
+    color: #222;
+}
+
+#showHistory .top a{
+    position: absolute;
+    right: 0;
+    top: 0;
+    font-size: 12px;
+    color: #666;
+}
+
+#showHistory .top a:hover{
+    color: #278bdd;
+}
+
+#showHistory .content{
+    height: 564px;
+}
+
+#showHistory .content figure{
+    display: inline-block;
+    float: left;
+    margin: 10px 0 10px 20px;
+    border: 1px solid #ddd;
+    width: 283px;
+    height: 260px;
+    background: #fff;
+}
+
+#showHistory .content figure.left{
+    margin: 10px 0 !important;
+}
+
+#showHistory .carImg{
+    width: 283px;
+    height: 160px;
+    position: relative;
+}
+
+#showHistory .carImg .car{
+    display: block;
+    height: 160px;
+    width: 283px;
+}
+
+#showHistory .carImg .sell{
+    display: block;
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 100px;
+    height: 100px;
+}
+
+#showHistory .carInfo{
+    margin: 5px 20px;
+}
+
+#showHistory .carInfo h2{
+    font-size: 14px;
+    color: #222;
+    line-height: 20px;
+    font-weight: normal;
+}
+
+#showHistory .carInfo h3{
+    font-size: 12px;
+    color: #666;
+    line-height: 20px;
+    font-weight: normal;
+}
+
+#showHistory .carInfo h3 span{
+    margin: 0 10px;
+}
+
+#showHistory .counInfo{
+    margin: 5px 20px;
+    position: relative;
+    border-top: 1px solid #ccc;
+    padding-top: 8px;
+}
+
+#showHistory .counInfo img{
+    display: inline-block;
+    float: left;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+}
+
+#showHistory .counInfo .info{
+    display: inline-block;
+    float: left;
+    font-size: 12px;
+    line-height: 30px;
+    margin-left: 10px;
+    color: #666;
+}
+
+#showHistory .counInfo .info span{
+    margin-left: 5px;
+    color: #000;
+}
+
+#showHistory .counInfo .info span strong{
+    color: #f60;
+}
+
+#showHistory .counInfo .sellTime{
+    position: absolute;
+    right: 0;
+    top: 8px;
+    color: #f60;
+    line-height: 20px;
+    border: 1px solid #f60;
+    font-size: 12px;
+    border-radius: 5px;
+    padding: 0 5px;
+    margin: 5px 0;
+}
+
+#footer{
+    padding-bottom: 70px;
+    background: #333;
+    width: 100%;
+}
+
+#footer .center{
+    position: relative;
+    width: 1200px;
+    height: 180px;
+    margin: 0 auto;
+}
+
+#footer .center ul li{
+    display: inline-block;
+    float: left;
+    width: 180px;
+    height: 120px;
+    margin: 30px 0;
+}
+
+#footer .center ul li h3{
+    color: #fff;
+    font-size: 16px;
+    margin-bottom: 10px;
+    font-weight: normal;
+}
+
+#footer .center ul li a{
+    display: block;
+    font-size: 12px;
+    color: #999;
+    line-height: 200%;
+}
+
+#footer .center ul li.rightBorder{
+    border-right: 1px solid #666;
+}
+
+#footer .center .right{
+    height: 110px;
+    position: absolute;
+    top: 30px;
+    right: 5px;
+}
+
+#footer .center .right .lefter{
+    display: inline-block;
+    margin-right: 40px;
+    float: left;
+    width: 100px;
+    height: 100px;
+}
+
+#footer .center .right img{
+    width: 100px;
+    height: 100px;
+    margin-bottom: 5px;
+}
+
+#footer .center .right span{
+    display: block;
+    width: 100%;
+    text-align: center;
+    color: #ccc;
+    font-size: 12px;
+}
+
+#footer .center .right .righter{
+    display: inline-block;
+    float: left;
+    width: 100px;
+    height: 100px;
+}
+
+#footer .footBottom{
+    text-align: center;
+    color: #ccc;
+    font-size: 12px;
+    padding-top: 15px;
+    border-top: 1px solid #666;
+    width: 100%;
+}
+
+#footer .footBottom a{
+    color: #999;
+}
+
+#footer .footBottom .policeCertify{
+    width: 300px;
+    margin: 0 auto;
+    padding: 20px 0;
+}
+
+#footer .footBottom .policeCertify a{
+    display: inline-block;
+    height: 20px;
+    line-height: 20px;
+}
+
+#footer .footBottom .policeCertify a img{
+    display: inline-block;
+    float: left;
+    margin-top: 0 !important;
+}
+
+#footer .footBottom .policeCertify a p{
+    display: inline-block;
+    float: left;
+    margin: 0 0 0 5px;
+    color: #939393;
+}
+
+#footer .footBottom .honesty img{
+    margin-top: 10px;
+}
+
