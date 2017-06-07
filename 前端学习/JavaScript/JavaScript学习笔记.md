@@ -1,5 +1,7 @@
 # JavaScript 笔记
 
+[TOC]
+
 ## 1. JavaScript简介
 
 - JavaScript 是一种动态语言，它与HTML结合起来，用于增强功能，并提高交互性能
