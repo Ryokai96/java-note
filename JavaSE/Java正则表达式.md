@@ -52,13 +52,11 @@
 
 ## 2. 简单正则表达式
 
-### 2.01 MetaCharacters(元字符) . * +
+### 2.01 . * +
 
 - 例: TestRegExp.java
 
 ```java
-package com.ryokai96.test;
-
 public class TestRegExp {
 
 	public static void main(String[] args) {
@@ -78,7 +76,6 @@ public class TestRegExp {
 		System.out.println(o);
 	}
 }
-
 ```
 
 
@@ -88,18 +85,168 @@ public class TestRegExp {
 - 例: TestRegExp.java
 
 ```java
-package com.ryokai96.test;
-
 public class TestRegExp {
 
 	public static void main(String[] args) {
 		p("192".matches("[0-2][0-9][0-9]"));	//[0-2]表示范围0-2  true
 		p("a".matches("[abc]"));	//[abc]表示abc中的一个字符    true
-		p("a".matches("[^abc]"));	//[^abc]表示除abc外的一个字符    false
+		p("a".matches("[^abc]"));	// ^位于[]中表示取反，[^abc]表示除abc外的一个字符    false
 		p("A".matches("[a-zA-Z]"));	//[a-zA-Z]表示a-z或A-Z中的一个字符    true
 		p("A".matches("[a-z]|[A-Z]"));	//与上一条一样    true
 		p("A".matches("[a-z[A-Z]]"));	//与上一条一样    true
 		p("R".matches("[A-Z&&[RFG]]"));	//[A-Z&&[RFG]]表示在A-Z中并且是RFG中的一个字符    true
+	}
+	
+	public static void p(Object o) {
+		System.out.println(o);
+	}
+}
+```
+
+
+
+### 2.03 \s \w \d \
+
+- 例: TestRegExp.java
+
+```java
+public class TestRegExp {
+
+	public static void main(String[] args) {
+		p(" \n\r\t".matches("\\s{4}"));	// \s表示空白字符，\s{4}表示4个空白字符    true
+		p(" ".matches("\\S"));	// \S表示非空白字符    false
+		p("a_8".matches("\\w{3}"));	// \w表示字母、数字以及下划线_  true
+		p("abc888&^%".matches("[a-z]{1,3}\\d+[&^#%]+"));	//a-z之间的字母出现1-3次，\\d+表示数字出现一次或多次，[&^#%]+表示&^#%中的出现一次或多次
+//		p("\\".matches("\\"));	// \在正则表达式中也代表转义字符    报错
+		p("\\".matches("\\\\"));	//true
+	}
+	
+	public static void p(Object o) {
+		System.out.println(o);
+	}
+}
+```
+
+
+
+### 2.04 Posix Style
+
+- 例: TestRegExp.java
+
+```java
+public class TestRegExp {
+
+	public static void main(String[] args) {
+		p("a".matches("\\p{Lower}"));	// \p{Lower}代表小写字母    true
+	}
+	
+	public static void p(Object o) {
+		System.out.println(o);
+	}
+}
+```
+
+
+
+### 2.05 边界处理
+
+- 例: TestRegExp.java
+
+```java
+public class TestRegExp {
+
+	public static void main(String[] args) {
+		p("hello sir".matches("^h.*"));	// ^表示一行的开头，^h.*表示以h开头，后面有零个或多个字符    true
+		p("hello sir".matches(".*ir$"));	// $表示一行的结尾，.*ir$表示以ir结尾，前面有零个或多个字符    true
+		p("hello sir".matches("^h[a-z]{1,3}o\\b.*"));	// \b表示一个单词的边界    true
+		p("hellosir".matches("^h[a-z]{1,3}o\\b.*"));	// false
+	}
+	
+	public static void p(Object o) {
+		System.out.println(o);
+	}
+}
+
+```
+
+
+
+### 2.06 空行
+
+- 例: TestRegExp.java
+
+```java
+public class TestRegExp {
+
+	public static void main(String[] args) {
+		p(" \n".matches("^[\\s&&[^\\n]]*\\n$"));	// 以空白字符且不是换行符\n开头，这样的字符出现零次或多次，且以换行符\n结尾
+	}
+	
+	public static void p(Object o) {
+		System.out.println(o);
+	}
+}
+```
+
+
+
+### 2.07 简单匹配email地址
+
+- 例: TestRegExp.java
+
+```java
+public class TestRegExp {
+
+	public static void main(String[] args) {
+		// [\w[.-]]+表示字母、数字、下划线还有.和-出现一次或多次，\.表示一个.号
+		p(".assdsaxcz-sad_@dasd.com".matches("[\\w[.-]]+@[\\w[.-]]+\\.[\\w]+"));	// true
+	}
+	
+	public static void p(Object o) {
+		System.out.println(o);
+	}
+}
+```
+
+
+
+## 3. Matcher类部分方法的使用
+
+### 3.01 matches()、find()、reset()、
+
+- matches: 整个匹配，只有整个字符序列完全匹配成功，才返回True，否则返回False。但如果前部分匹配成功，将移动下次匹配的位置
+- find: 部分匹配，从当前位置开始匹配，找到一个匹配的子串，将移动下次匹配的位置
+- lookingAt: 部分匹配，总是从第一个字符进行匹配,匹配成功了不再继续匹配，匹配失败了,也不继续匹配
+- reset: 给当前的Matcher对象配上个新的目标，目标是就该方法的参数；如果不给参数，reset会把Matcher设到当前字符串的开始处
+
+TestRegExp.java
+
+```java
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+public class TestRegExp {
+
+	public static void main(String[] args) {
+		Pattern p = Pattern.compile("\\d{3,5}");
+		String s = "123-34345-234-00";
+		Matcher m = p.matcher(s);
+		p(m.matches());	//匹配整个字符串，只有整个字符序列完全匹配成功，才返回True，但如果前部分匹配成功，将移动下次匹配的位置    false(下次匹配位置是-)
+		p(m.find());	//从当前位置开始匹配，找到一个匹配的子串，将移动下次匹配的位置  true(此时匹配到的是34345)
+		p(m.find());	//true(此时匹配到的是234)
+		p(m.find());	//false
+		p(m.find());	//false
+		
+		m.reset();	//重置匹配位置
+		p(m.find());	//true(此时匹配到的是123)
+		p(m.find());	//true(此时匹配到的是34345)
+		p(m.find());	//true(此时匹配到的是234)
+		p(m.find());	//false
+		
+		p(m.lookingAt());	//true
+		p(m.lookingAt());	//true
+		p(m.lookingAt());	//true
+		p(m.lookingAt());	//true
 	}
 	
 	public static void p(Object o) {
