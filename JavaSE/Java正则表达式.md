@@ -1,5 +1,7 @@
 # Java 正则表达式
 
+[TOC]
+
 ## 1. 简介
 
 - 正则表达式(Regular Expression)
@@ -212,7 +214,7 @@ public class TestRegExp {
 
 ## 3. Matcher类部分方法的使用
 
-### 3.01 matches()、find()、reset()、
+### 3.01 matches()、find()、reset()
 
 - matches: 整个匹配，只有整个字符序列完全匹配成功，才返回True，否则返回False。但如果前部分匹配成功，将移动下次匹配的位置
 - find: 部分匹配，从当前位置开始匹配，找到一个匹配的子串，将移动下次匹配的位置
@@ -253,5 +255,122 @@ public class TestRegExp {
 		System.out.println(o);
 	}
 }
+```
+
+
+
+### 3.02 start()、end()、group()
+
+- 当使用matches()、lookingAt()、find()执行匹配操作后,就可以利用start()、end()得到更详细的信息
+
+
+- start(): 返回匹配到的子字符串的第一个字符在字符串中的索引位置
+- end(): 返回匹配到的子字符串的最后一个字符在字符串中的索引位置的下一个字符的索引位置
+- group(): 返回匹配到的子字符串
+
+TestRegExp.java
+
+```java
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+public class TestRegExp {
+
+	public static void main(String[] args) {
+		Pattern p = Pattern.compile("\\d{3,5}");
+		String s = "123-34345-234-00";
+		Matcher m = p.matcher(s);
+		
+		p(m.find());	//true
+		p(m.start() + "-" + m.end());	//0-3
+		p(m.group());	//123
+		p(m.find());	//true
+		p(m.start() + "-" + m.end());	//4-9
+		p(m.group());	//34345
+		p(m.find());	//true
+		p(m.start() + "-" + m.end());	//10-13
+		p(m.group());	//234
+		p(m.find());	//false
+//		p(m.start() + "-" + m.end());	//报异常
+//		p(m.group());	//报异常
+	}
+	
+	public static void p(Object o) {
+		System.out.println(o);
+	}
+}
+```
+
+
+
+### 3.03 字符串操作
+
+TextRegExp.java
+
+```java
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+public class TestRegExp {
+
+	public static void main(String[] args) {
+		Pattern p = Pattern.compile("java", Pattern.CASE_INSENSITIVE);	//CASE_INSENSITIVE表示忽略大小写
+		Matcher m = p.matcher("java Java JAVa JaVa IloveJAVA you hateJava dsadasddds");
+		
+		p(m.replaceAll("JAVA"));	//replaceAll()方法表示替换所有匹配到的子串并返回替换后的字符串    JAVA JAVA JAVA JAVA IloveJAVA you hateJAVA dsadasddds
+		
+		m.reset();
+		
+		StringBuffer buf = new StringBuffer();
+		int i = 0;
+		while(m.find()) {
+			i++;
+			//第奇数个java大写，第偶数个java小写
+			if(i%2 == 0) {
+				m.appendReplacement(buf, "java");	//appendReplacement方法表示在Matcher.find()找到匹配的地方用"java"替换掉然后加进buf中去
+			} else {
+				m.appendReplacement(buf, "JAVA");
+			}
+		}
+		p(buf);	//JAVA java JAVA java IloveJAVA you hatejava
+		m.appendTail(buf);	//把未fine()到的字串加到buf中
+		p(buf);	//JAVA java JAVA java IloveJAVA you hatejava dsadasddds
+	}
+	
+	public static void p(Object o) {
+		System.out.println(o);
+	}
+}
+```
+
+
+
+### 3.04 分组
+
+- 正则表达式用 () 进行分组，每个组有自己的组号，左小括号 ( 的起始位置决定了这个组的组号，如一个组的左小括号 ( 为整个正则表达式的第一个左小括号 ( ，则这个组的组号为1
+
+TestRegExp.java
+
+```java
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+public class TestRegExp {
+
+	public static void main(String[] args) {
+		Pattern p = Pattern.compile("(\\d{3,5})([a-z]{2})");	// ()用于分组
+		String s = "123aa-34345bb-234cc-00";
+		Matcher m = p.matcher(s);
+		m.find();
+		p(m.group());	//123aa
+		p(m.group(1));	//123
+		p(m.group(2));	//aa
+	}
+	
+	public static void p(Object o) {
+		System.out.println(o);
+	}
+}
+
 ```
 
