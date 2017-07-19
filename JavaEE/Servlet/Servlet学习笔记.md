@@ -1,4 +1,18 @@
-### Servlet 生命周期
+# Servlet 学习笔记
+
+[TOC]
+
+### 1. Servlet 简介
+
+- Java Servlet 是运行在 Web 服务器或应用服务器上的程序，它是作为来自 Web 浏览器或其他 HTTP 客户端的请求和 HTTP 服务器上的数据库或应用程序之间的中间层
+
+- Servlet架构:
+
+  ​
+
+
+
+### 2. Servlet 生命周期
 
 1. 加载 ClassLoader
 2. 实例化 new
@@ -9,7 +23,7 @@
 
 
 
-### Cookie
+### 3. Cookie
 
 - 关闭web页面时，这个页面和服务器的socket连接就断开了，为了让服务器获取web页面关闭前的内容，要求出现一种保存c(客户端)/s(服务端)间状态的机制，这种机制需要满足：
 
@@ -34,7 +48,7 @@
 
 
 
-### Session
+### 4. Session
 
 - Session记录在服务端
 - Session的实现:
@@ -49,14 +63,14 @@
 
 
 
-### Application
+### 5. Application
 
 - Application中的内容所有客户端都可以访问
 
 
 
 
-### javaBean
+### 5. javaBean
 
 - 广义javaBean: 普通java类
 - 狭义javaBean: 符合Sun JavaBean标准的类
