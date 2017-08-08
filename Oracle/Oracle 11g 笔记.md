@@ -274,7 +274,7 @@ imp /*从.dmp文件选择内容导入到xx用户*/
 
 ```sql
 create user ryoukai identified by ryoukai default tablespace users quota 10M on users;  /*创建用户名为ryoukai，密码为ryoukai的用户，在默认的表空间users中分配10M空间给ryoukai用户*/
-grant create session, create teble, create view to ryoukai;  /*为新用户ryoukai赋予权限，create session为登录权限*/
+grant create session, create table, create view, create sequence to ryoukai;  /*为新用户ryoukai赋予权限，create session为登录权限*/
 ```
 
 
