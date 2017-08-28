@@ -39,7 +39,6 @@
    import java.sql.ResultSet;
    import java.sql.SQLException;
 
-
    public class TestJdbc {
    	
    	public static void main(String[] args) {
@@ -127,11 +126,13 @@
 
 
 
+
 ### 1.02 MyBatis框架概述
 
 - MyBatis是一个持久层框架，是Apache下的顶级项目，后来托管到GoogleCode下，再后来托管到GitHub下
 - MyBatis让程序员将主要精力放在sql上，通过MyBatis提供的映射方式，自由灵活生成(半自动化，大部分需要程序员编写sql)满足需求的sql语句
 - MyBatis可以将向preparedStatement中输入的参数自动进行输入映射，将查询结果集灵活映射成java对象
+
 
 
 
@@ -146,10 +147,12 @@
 
 
 
+
 ### 1.04 MyBatis目录结构
 
 - mybatis-3.4.4.jar: 核心包
 - lib目录下: 依赖包
+
 
 
 
@@ -373,3 +376,714 @@
 
    ​
 
+
+### 2.02 插入
+
+1. 在映射文件中添加插入语句
+
+   User.xml
+
+   ```xml
+   <!-- 添加用户 -->
+   <!-- parameterType中填写pojo类型 -->
+   <insert id="insertUser" parameterType="com.ryoukai.mybatis.po.User">
+     <!-- #{}中只当属性名，MyBatis通过OGNL获取对象的属性值 -->
+     insert into user(id,username,birthday,sex,address) values(#{id},#{username},#{birthday},#{sex},#{address})
+   </insert>
+   ```
+
+2. 写代码测试
+
+   MyBatisFirst.java
+
+   ```java
+   //添加用户信息
+   @Test
+   public void insertUser() {
+
+     //MyBatis配置文件
+     String resource = "SqlMapConfig.xml";
+
+     InputStream inputStream = null;
+
+     try {	
+       //得到配置文件流
+       inputStream = Resources.getResourceAsStream(resource);
+     } catch (IOException e) {
+       e.printStackTrace();
+     }
+
+     //创建会话工厂
+     SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
+
+     //通过工厂得到SqlSession
+     SqlSession sqlSession = sqlSessionFactory.openSession();
+
+     //插入用户对象
+     User user = new User();
+     user.setUsername("王小军");
+     user.setBirthday(new Date());
+     user.setSex("m");
+     user.setAddress("江苏南京");
+
+     sqlSession.insert("test.insertUser", user);
+
+     //提交事务
+     sqlSession.commit();
+
+     //关闭会话
+     sqlSession.close();
+   }
+   ```
+
+3. 获取自增主键
+
+   修改User.xml
+
+   ```xml
+   <!-- 添加用户 -->
+   <!-- parameterType中填写pojo类型 -->
+   <insert id="insertUser" parameterType="com.ryoukai.mybatis.po.User">
+     <!-- 将插入数据的自增主键返回到user对象中 -->
+     <!-- keyProperty: 将返回的结果设置到parameterType指定的对象对应名称的属性
+      order: 指定select语句相对于insert语句的执行顺序
+      resultType: 指定select返回结果的类型
+      -->
+     <selectKey keyProperty="id" order="AFTER" resultType="java.lang.Integer">
+       <!-- last_insert_id()时mysql的函数，返回刚刚insert进去记录的主键值，只适用于自增主键 -->
+       select last_insert_id()
+     </selectKey>
+     <!-- #{}中只当属性名，MyBatis通过OGNL获取对象的属性值 -->
+     insert into user(id,username,birthday,sex,address) values(#{id},#{username},#{birthday},#{sex},#{address})
+   </insert>
+   ```
+
+   修改MyBatisFirst.java
+
+   ```java
+   //添加用户信息
+   @Test
+   public void insertUser() {
+
+     //MyBatis配置文件
+     String resource = "SqlMapConfig.xml";
+
+     InputStream inputStream = null;
+
+     try {	
+       //得到配置文件流
+       inputStream = Resources.getResourceAsStream(resource);
+     } catch (IOException e) {
+       e.printStackTrace();
+     }
+
+     //创建会话工厂
+     SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
+
+     //通过工厂得到SqlSession
+     SqlSession sqlSession = sqlSessionFactory.openSession();
+
+     //插入用户对象
+     User user = new User();
+     user.setUsername("王小军");
+     user.setBirthday(new Date());
+     user.setSex("m");
+     user.setAddress("江苏南京");
+
+     sqlSession.insert("test.insertUser", user);
+
+     //检查是否返回id
+     System.out.println(user.getId());
+
+     //提交事务
+     sqlSession.commit();
+
+     //关闭会话
+     sqlSession.close();
+   }
+   ```
+
+4. 使用uuid生成id
+
+   User.xml
+
+   ```xml
+   <!-- 添加用户 -->
+   <!-- parameterType中填写pojo类型 -->
+   <insert id="insertUser" parameterType="com.ryoukai.mybatis.po.User">
+     <!-- 将插入数据的自增主键返回到user对象中 -->
+     <!-- keyProperty: 将返回的结果设置到parameterType指定的对象对应名称的属性
+      order: 指定select语句相对于insert语句的执行顺序
+      resultType: 指定select返回结果的类型
+      -->
+     <!-- <selectKey keyProperty="id" order="AFTER" resultType="java.lang.Integer">
+      last_insert_id()时mysql的函数，返回刚刚insert进去记录的主键值，只适用于自增主键
+      select last_insert_id()
+     </selectKey> -->
+
+     <!-- #{}中只当属性名，MyBatis通过OGNL获取对象的属性值 -->
+     insert into user(id,username,birthday,sex,address) values(#{id},#{username},#{birthday},#{sex},#{address})
+
+     <!-- 使用mysql的uuid()函数生成主键，将主键设置到user对象的id属性中 -->
+     <selectKey keyProperty="id" order="BEFORE" resultType="java.lang.String">
+       select uuid()
+     </selectKey>
+   </insert>
+   ```
+
+   ​
+
+### 2.03 删除和更新
+
+1. 在映射文件中写sql语句
+
+   User.xml
+
+   ```xml
+   <!-- 根据id删除用户 -->
+   <delete id="deleteUser" parameterType="java.lang.Integer">
+     delete from user where id=#{id}
+   </delete>
+
+   <!-- 根据id更新用户，注意: user对象中的id为查询所用id -->
+   <update id="updateUser" parameterType="com.ryoukai.mybatis.po.User">
+     <!-- #{id}为从输入user对象中获取id的属性值 -->
+     update user set username=#{username},birthday=#{birthday},sex=#{sex},address=#{address} where id=#{id}
+   </update>
+   ```
+
+2. 写测试代码
+
+   MyBatisFirst.java
+
+   ```java
+   //删除用户信息
+   @Test
+   public void deleteUser() {
+
+     //MyBatis配置文件
+     String resource = "SqlMapConfig.xml";
+
+     InputStream inputStream = null;
+
+     try {	
+       //得到配置文件流
+       inputStream = Resources.getResourceAsStream(resource);
+     } catch (IOException e) {
+       e.printStackTrace();
+     }
+
+     //创建会话工厂
+     SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
+
+     //通过工厂得到SqlSession
+     SqlSession sqlSession = sqlSessionFactory.openSession();
+
+     sqlSession.delete("test.deleteUser", 26);
+
+     //提交事务
+     sqlSession.commit();
+
+     //关闭会话
+     sqlSession.close();
+   }
+
+   //更新用户信息
+   @Test
+   public void updateUser() {
+
+     //MyBatis配置文件
+     String resource = "SqlMapConfig.xml";
+
+     InputStream inputStream = null;
+
+     try {	
+       //得到配置文件流
+       inputStream = Resources.getResourceAsStream(resource);
+     } catch (IOException e) {
+       e.printStackTrace();
+     }
+
+     //创建会话工厂
+     SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
+
+     //通过工厂得到SqlSession
+     SqlSession sqlSession = sqlSessionFactory.openSession();
+
+     //更新用户对象
+     User user = new User();
+     user.setId(25);
+     user.setUsername("王小往");
+     user.setBirthday(new Date());
+     user.setSex("m");
+     user.setAddress("江苏南京");
+
+     sqlSession.update("test.updateUser", user);
+
+     //检查是否返回id
+     System.out.println(user.getId());
+
+     //提交事务
+     sqlSession.commit();
+
+     //关闭会话
+     sqlSession.close();
+   }
+   ```
+
+
+
+
+## 3. MyBatis和Hibernate的本质区别和应用场景
+
+- Hibernate: 是一个标准ORM框架(对象关系映射)，不需要在程序中写sql语句，sql语句自动生成，对sql语句进行优化、修改比较困难
+  - 应用场景: 适用于需求变化较少的中小型项目，比如: 后台管理系统、erp、orm、oa
+- MyBatis: 专注sql本身，需要在程序中自己编写sql语句，sql语句的修改、优化比较方便
+  - 应用场景: 适用于需求变化较多的项目，比如: 互联网项目
+
+
+
+## 4. MyBatis开发Dao的方法
+
+### 4.01 SqlSession使用范围
+
+1. 通过SqlSessionFactoryBuilder创建SqlSessionFactory，把SqlSessionFactoryBuilder当作一个工具类来使用，不需要使用单例模式，在需要创建SqlSessionFactory时，只需要new一个SqlSessionFactoryBuilder即可
+2. 通过SqlSessionFactory创建SqlSession，使用单例模式管理SqlSessionFactory
+3. SqlSession是面向用户(程序员)的接口，SqlSession中提供了很多操作数据库的方法，SqlSession是线程不安全的，在SqlSession实现类中除了接口中的方法，还有数据域的属性。
+4. SqlSession最佳应用场合在方法体内，定义成局部变量使用
+
+
+
+### 4.02 原始Dao开发方法
+
+- 程序员需要写Dao接口和实现类
+- 需要向dao实现类中注入SqlSessionFactory，在方法体内通过SqlSessionFactory创建SqlSession
+
+
+
+#### 示例
+
+1. Dao接口编写
+
+   UserDao.java
+
+   ```java
+   package com.ryoukai.mybatis.dao;
+
+   import com.ryoukai.mybatis.po.User;
+
+   public interface UserDao {
+   	
+   	//根据id查询用户信息
+   	public User findUserById(int id);
+   	
+   	//添加用户信息
+   	public void insertUser(User user);
+   	
+   	//根据id删除用户信息
+   	public void deleteUser(int id);
+   	
+   	//更新用户信息
+   	public void updateUser(User user);
+   }
+   ```
+
+2. 编写Dao接口的实现类
+
+   UserDaoImpl.java
+
+   ```java
+   package com.ryoukai.mybatis.dao.impl;
+
+   import org.apache.ibatis.session.SqlSession;
+   import org.apache.ibatis.session.SqlSessionFactory;
+
+   import com.ryoukai.mybatis.dao.UserDao;
+   import com.ryoukai.mybatis.po.User;
+
+   /**
+    * UserDao接口实现类
+    * @author Ryoukai
+    *
+    */
+   public class UserDaoImpl implements UserDao{
+   	
+   	private SqlSessionFactory sqlSessionFactory;
+   	
+   	//通过构造函数注入SqlSessionFactory
+   	public UserDaoImpl(SqlSessionFactory sqlSessionFactory) {
+   		this.sqlSessionFactory = sqlSessionFactory;
+   	}
+
+   	@Override
+   	public User findUserById(int id) {
+   		SqlSession sqlSession = sqlSessionFactory.openSession();
+   		User user = sqlSession.selectOne("test.findUserById", id);
+   		sqlSession.close();
+   		return user;
+   	}
+
+   	@Override
+   	public void insertUser(User user) {
+   		SqlSession sqlSession = sqlSessionFactory.openSession();
+   		sqlSession.insert("test.insertUser", user);
+   		sqlSession.commit();
+   		sqlSession.close();
+   	}
+
+   	@Override
+   	public void deleteUser(int id) {
+   		SqlSession sqlSession = sqlSessionFactory.openSession();
+   		sqlSession.insert("test.deleteUser", id);
+   		sqlSession.commit();
+   		sqlSession.close();
+   	}
+
+   	@Override
+   	public void updateUser(User user) {
+   		SqlSession sqlSession = sqlSessionFactory.openSession();
+   		sqlSession.insert("test.updateUser", user);
+   		sqlSession.commit();
+   		sqlSession.close();
+   	}
+   }
+   ```
+
+3. 编写测试类
+
+   UserDaoImplTest.java
+
+   ```java
+   package com.ryoukai.mybatis.dao.impl;
+
+   import java.io.IOException;
+   import java.io.InputStream;
+
+   import org.apache.ibatis.io.Resources;
+   import org.apache.ibatis.session.SqlSessionFactory;
+   import org.apache.ibatis.session.SqlSessionFactoryBuilder;
+   import org.junit.Before;
+   import org.junit.Test;
+
+   import com.ryoukai.mybatis.dao.UserDao;
+   import com.ryoukai.mybatis.po.User;
+
+   public class UserDaoImplTest {
+
+   	private SqlSessionFactory sqlSessionFactory;
+   	
+   	//此方法在testFindUserById()之前执行
+   	@Before
+   	public void setUp() {
+   		String resource = "SqlMapConfig.xml";
+   		InputStream inputStream = null;
+   		try {
+   			inputStream = Resources.getResourceAsStream(resource);
+   		} catch (IOException e) {
+   			e.printStackTrace();
+   		}
+   		sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
+   		
+   	}
+   	
+   	@Test
+   	public void testFindUserById() {
+   		UserDao userDao = new UserDaoImpl(sqlSessionFactory);
+   		User user = userDao.findUserById(1);
+   		System.out.println(user.getUsername());
+   	}
+
+   }
+   ```
+
+
+
+### 4.03 原始Dao开发问题总结
+
+1. dao接口实现类方法中存在大量模板方法，若能将这些代码提取出来，将大大减少程序员的工作量
+2. 调用sqlSession方法时，将statement的id硬编码了
+3. 调用sqlSession方法时传入的变量，由于sqlSession的方法使用泛型，即使变量类型传入错误，在编译阶段也不报错，不利于程序开发
+
+
+
+### 4.04 Mapper代理开发
+
+- 程序员只需要编写mapper接口(相当于dao接口)
+- 程序员还需要编写mapper.xml映射文件
+- 只要程序员编写mapper接口遵循一些开发规范，MyBatis就可以自动生成Mapper接口实现类的代理对象
+
+
+
+#### 开发规范
+
+- 在mapper.xml中namespace等于mapper接口地址
+- mapper接口中的方法名和mapper.xml中statement的id一致
+- mapper接口中方法输入参数类型和mapper.xml中statement的parameterType指定的类型一致
+- mapper接口中方法的返回值类型和mapper.xml中statement的resultType指定的类型一致
+- 如果mapper接口中方法返回单个pojo对象(非集合对象)，代理对象的内部通过selectOne查询数据库
+- 如果mapper接口中方法返回集合对象，代理对象的内部通过selectList查询数据库
+- mapper接口中方法的参数只能有一个
+
+
+
+#### 示例过程
+
+1. 创建mapper接口
+
+   UserMapper.java
+
+   ```java
+   package com.ryoukai.mybatis.mapper;
+
+   import com.ryoukai.mybatis.po.User;
+
+   public interface UserMapper {
+   	
+   }
+   ```
+
+2. 创建mapper映射文件
+
+   UserMapper.xml，在namespace中填写UserMapper的地址
+
+   ```xml
+   <?xml version="1.0" encoding="UTF-8"?>
+   <!DOCTYPE mapper
+   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+   <mapper namespace="com.ryoukai.mybatis.mapper.UserMapper">
+   	<select id="findUserById" parameterType="int"
+   		resultType="com.ryoukai.mybatis.po.User">
+   		select * from user where id=#{id}
+   	</select>
+
+   	<select id="findUserByName" parameterType="java.lang.String" resultType="com.ryoukai.mybatis.po.User">
+   		select * from user where username like '%${value}%'
+   	</select>
+   	
+   	<insert id="insertUser" parameterType="com.ryoukai.mybatis.po.User">
+   		<selectKey keyProperty="id" order="AFTER" resultType="java.lang.Integer">
+   			select last_insert_id()
+   		</selectKey>
+         
+   		insert into user(id,username,birthday,sex,address) values(#{id},#{username},#{birthday},#{sex},#{address})
+   	</insert>
+
+   	<delete id="deleteUser" parameterType="java.lang.Integer">
+   		delete from user where id=#{id}
+   	</delete>
+   	
+   	<update id="updateUser" parameterType="com.ryoukai.mybatis.po.User">
+   		update user set username=#{username},birthday=#{birthday},sex=#{sex},address=#{address} where id=#{id}
+   	</update>
+   	
+   </mapper>
+   ```
+
+3. 将映射文件加载到MyBatis全局配置文件SqlMapConfig.xml
+
+   SqlMapConfig.xml
+
+   ```xml
+   <?xml version="1.0" encoding="UTF-8"?>
+   <!DOCTYPE configuration
+   PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+   "http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+   <configuration>
+   	<!-- 和Spring整合后environments配置将废除 -->
+   	<environments default="development">
+   		<environment id="development">
+   			<!-- 使用jdbc事务管理，事务控制由MyBatis完成 -->
+   			<transactionManager type="JDBC" />
+   			<!-- 数据库连接池，由MyBatis管理 -->
+   			<dataSource type="POOLED">
+   				<property name="driver" value="com.mysql.jdbc.Driver" />
+   				<property name="url"
+   					value="jdbc:mysql://localhost:3306/testmybatis?characterEncoding=utf-8" />
+   				<property name="username" value="root" />
+   				<property name="password" value="root" />
+   			</dataSource>
+   		</environment>
+   	</environments>
+
+   	<!-- 加载映射文件 -->
+   	<mappers>
+   		<mapper resource="mapper/UserMapper.xml"/>
+   	</mappers>
+   </configuration>
+   ```
+
+4. 在UserMapper.java中添加抽象方法
+
+   注意方法名要和UserMapper.xml中statement的id一致，方法输入参数类型和UserMapper.xml中statement的parameterType指定的类型一致，方法的返回值类型和UserMapper.xml中statement的resultType指定的类型一致
+
+   UserMapper.java
+
+   ```java
+   package com.ryoukai.mybatis.mapper;
+
+   import com.ryoukai.mybatis.po.User;
+
+   public interface UserMapper {
+   	
+   	//根据id查询用户信息
+   	public User findUserById(int id);	
+     
+   	//根据用户名模糊查询
+   	public List<User> findUserByName(String name);
+   	
+   	//添加用户信息
+   	public void insertUser(User user);
+   	
+   	//根据id删除用户信息
+   	public void deleteUser(int id);
+   	
+   	//更新用户信息
+   	public void updateUser(User user);
+   }
+   ```
+
+5. 编写测试类
+
+   UserMapperTest.java
+
+   ```java
+   package com.ryoukai.mybatis.mapper;
+
+   import java.io.IOException;
+   import java.io.InputStream;
+
+   import org.apache.ibatis.io.Resources;
+   import org.apache.ibatis.session.SqlSession;
+   import org.apache.ibatis.session.SqlSessionFactory;
+   import org.apache.ibatis.session.SqlSessionFactoryBuilder;
+   import org.junit.Before;
+   import org.junit.Test;
+
+   import com.ryoukai.mybatis.po.User;
+
+   public class UserMapperTest {
+
+   	private SqlSessionFactory sqlSessionFactory;
+   	
+   	@Before
+   	public void setUp() {
+   		String resource = "SqlMapConfig.xml";
+   		InputStream inputStream = null;
+   		try {
+   			inputStream = Resources.getResourceAsStream(resource);
+   		} catch (IOException e) {
+   			e.printStackTrace();
+   		}
+   		sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
+   	}
+
+   	@Test
+   	public void testFindUserById() {
+   		SqlSession sqlSession = sqlSessionFactory.openSession();
+   		
+   		//创建UserMapper实例对象，MyBatis自动生成UserMapper的代理对象
+   		UserMapper userMapper = sqlSession.getMapper(UserMapper.class);
+   		
+         	//调用userMapper的方法
+   		User user = userMapper.findUserById(1);	
+   		System.out.println(user.getUsername());
+   		
+   		List<User> list = userMapper.findUserByName("小明");
+   		for(int i = 0; i < list.size(); i++) {
+   			System.out.println(list.get(i).getUsername());
+   		}
+   	}
+   }
+   ```
+
+   ​
+
+#### mapper接口方法参数只能有一个对开发是否有影响
+
+- 系统框架中，dao层的代码是被业务层公用的
+- 即使mapper接口只有一个参数，仍然可以使用包装类型的pojo满足不同业务方法的需求
+  - 注意: 持久层方法的参数可以使用包装类型，service方法中建议不要使用包装类型(因为不利于业务层的扩展维护)
+
+
+
+## 5. 高级映射示例
+
+### 5.01 建表，分析表关系
+
+- user表(用户表)
+
+  ```mysql
+  CREATE TABLE `user` (
+    `id` int(11) NOT NULL,
+    `username` varchar(32) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '用户名称',
+    `birthday` date DEFAULT NULL COMMENT '生日',
+    `sex` char(1) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '性别',
+    `address` varchar(256) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '地址',
+    PRIMARY KEY (`id`)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+  ```
+
+- items表(商品表)
+
+  ```mysql
+  CREATE TABLE `items` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `name` varchar(32) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '商品名称',
+    `price` float(10,1) NOT NULL COMMENT '商品定价',
+    `detail` text COLLATE utf8mb4_unicode_ci COMMENT '商品描述',
+    `pic` varchar(512) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '商品图片',
+    `createtime` datetime DEFAULT NULL COMMENT '生产日期',
+    PRIMARY KEY (`id`)
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+  ```
+
+- orders表(订单表)
+
+  ```mysql
+  CREATE TABLE `orders` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `user_id` int(11) NOT NULL COMMENT '下单用户id',
+    `number` varchar(32) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT '订单号',
+    `createtime` datetime NOT NULL COMMENT '创建订单时间',
+    `note` varchar(100) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT '备注',
+    PRIMARY KEY (`id`),
+    KEY `FK_orders_id` (`user_id`),
+    CONSTRAINT `FK_orders_id` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+  ```
+
+- orderdetail表
+
+  ```mysql
+  CREATE TABLE `orderdetail` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `orders_id` int(11) NOT NULL COMMENT '订单id',
+    `items_id` int(11) NOT NULL COMMENT '商品id',
+    `items_num` int(11) DEFAULT NULL COMMENT '商品的购买数量',
+    PRIMARY KEY (`id`),
+    KEY `FK_orderdetail_1` (`orders_id`),
+    KEY `FK_orderdetail_2` (`items_id`),
+    CONSTRAINT `FK_orderdetail_1` FOREIGN KEY (`orders_id`) REFERENCES `orders` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION,
+    CONSTRAINT `FK_orderdetail_2` FOREIGN KEY (`items_id`) REFERENCES `items` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION
+  ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+  ```
+
+- 分析表关系:
+
+  - user和orders:
+    - user->orders: 一个用户可以创建多个订单，一对多
+    - orders->user: 一个订单只由一个用户创建，一对一
+  - orders和orderdetail:
+    - orders->orderdetail: 一个订单可以包含多个订单明细，一对多
+    - orderdetail->orders: 一个订单明细只包括在一个订单中，一对一
+  - orderdetail和items:
+    - orderdetail->items: 一个订单明细包含一个商品信息，一对一
+    - items->orderdetail: 一个商品可以包括在多个订单明细中，多对一
+  - orders和items: 通过orderdetail建立关系
+    - orders->items: 一对多
+    - items->orders: 一对多
+    - 总之orders和items是多对多关系
+  - user和items: 多对多关系
