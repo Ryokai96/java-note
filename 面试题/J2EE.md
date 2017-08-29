@@ -130,3 +130,62 @@
 
     - initParam: Map对象。key=参数名，value=参数值，此参数是在web.xml中配置的，例如 ${initParam.encode }
 
+
+
+
+### 2. 对web.xml的理解，J2EE规范，J2EE入口Servlet、Listener的理解
+
+- Servlet与JSP有什么区别:
+
+  - Servlet和JSP完成的功能是相同的，都可以接收用户的请求，可以对用户进行响应，可以调用业务方法。
+
+    不同点在于JSP是在html或者xml中嵌入了Java代码或者JSP的标记，在制作页面方面具有优势，可以使用网页编辑工具来制作网页，然后嵌入Java或者JSP的标记。Servlet是纯Java代码，通常用于控制，不用于输出。在MVC模式中，JSP通常充当视图，Servlet通常充当控制器。另外，JSP在运行的时候还要转换成类似于Servlet的Java代码。
+
+- Servelt通常有哪些方法
+
+  - init方法，完成初始化
+
+    service方法，包括doGet和doPost，用于接收用户的请求，调用后台的JavaBean或者EJB，选择界面对用户响应
+
+    destroy方法，用于释放资源
+
+- Servlet的生命周期
+
+  - 当接收到请求的时候，容器察看对应的Servlet对象是否存在，如果不存在，需要加载Servetl，实例化Servlet，调用init方法进行初始化。如果已经存在，根据用户的请求创建request和response对象，把这两个对象作为参数调用Servlet对象的service方法，Servlet通过这个方法与用户进行交互，方法执行完之后，对请求的处理结束。Servelt对象继续等待下一个请求。当应用卸载的时候，调用destroy方法释放资源。多个请求共享Servelt对象
+
+- doGet方法和doPost方法中的两个参数是什么
+
+  - HttpServletRequest: 封装了与请求相关的信息，用于获取用户请求
+  - HttpServletResponse: 封装了与响应相关的信息，用于获取用户响应
+
+- Filter的作用
+
+  - Filter是特殊的Servlet，能够对特定的请求路径进行过滤，在访问这个路径之前，先执行过滤器，过滤器进行预处理，过滤器决定是否继续执行后续的文件。典型的应用，可以把用户验证的代码写在过滤器中，然后把过滤的路径配制成需要验证的文件的路径
+
+- Listener的作用
+
+  - Servlet监听器对特定的事件进行监听，当产生这些事件的时候，会执行监听器的代码。可以对应用的加载、卸载，对session的初始化、销毁，对session中值变化等事件进行监听
+
+
+
+### 3. Tomcat的部署方式有哪些
+
+- 方法一: 在tomcat中的conf目录中，在server.xml中的，\<host/>节点中添加
+
+  ```xml
+  <Context path="/hello" docBase="D:/eclipse/forwebtools/workspace/hello/WebRoot" debug="0" privileged="true"> 
+  </Context>
+  ```
+
+- 方法二: 将web项目文件件拷贝到webapps 目录中
+
+- 方法三: 在conf目录中，新建Catalina/localhost目录，在该目录中新建一个xml文件，名字可以随意取，只要和当前文件中的文件名不重复就行了，该xml文件的内容为
+
+  ```xml
+  <Context path="/hello" docBase="D:/eclipse/forwebtools/workspace/hello/WebRoot" debug="0" privileged="true"> 
+  </Context>
+  ```
+
+  这种方法有个优点: 可以定义别名。服务器端运行的项目名称为path，外部访问的URL则使用XML的文件名。这个方法很方便的隐藏了项目的名称，对一些项目名称被固定不能更换，但外部访问时又想换个路径，非常有效
+
+- 方法四: 可以用tomcat在线后台管理器,一般tomcat都打开了,直接上传war就可以
