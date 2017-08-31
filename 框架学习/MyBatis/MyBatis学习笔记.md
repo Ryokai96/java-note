@@ -1087,3 +1087,332 @@
     - items->orders: 一对多
     - 总之orders和items是多对多关系
   - user和items: 多对多关系
+
+
+
+### 5.02 一对一查询
+
+- 需求: 查询订单信息，关联查询创建订单的用户信息
+
+- 确定查询主表和关联表: 
+
+  - 主表: 订单表
+  - 关联表: 用户表
+
+- sql语句
+
+  ```sql
+  select order.*,user.username,user.sex,user.address
+  from orders, user --外连接
+  where orders.user_id = user.id;
+  ```
+
+
+
+#### resultType
+
+- 创建pojo: 将上边sql查询的结果映射到pojo中，pojo中必须包含所有查询列名
+
+  Orders.java
+
+  ```java
+  package com.ryoukai.mybatis.po;
+
+  import java.util.Date;
+  import java.util.List;
+
+  public class Orders {
+  	private Integer id;
+  	private Integer userId;
+  	private String number;
+  	private Date createtime;
+  	private String note;
+  	
+  	public Integer getId() {
+  		return id;
+  	}
+  	public void setId(Integer id) {
+  		this.id = id;
+  	}
+  	public Integer getUserId() {
+  		return userId;
+  	}
+  	public void setUserId(Integer userId) {
+  		this.userId = userId;
+  	}
+  	public String getNumber() {
+  		return number;
+  	}
+  	public void setNumber(String number) {
+  		this.number = number;
+  	}
+  	public Date getCreatetime() {
+  		return createtime;
+  	}
+  	public void setCreatetime(Date createtime) {
+  		this.createtime = createtime;
+  	}
+  	public String getNote() {
+  		return note;
+  	}
+  	public void setNote(String note) {
+  		this.note = note;
+  	}
+  	
+  }
+  ```
+
+  原始的Orders.java不能映射全部字段，需要创建新的pojo
+
+  OrdersCustom.java
+
+  ```java
+  package com.ryoukai.mybatis.po;
+
+  /**
+   * 通过此类映射订单和用户查询的结果，让此类继承字段较多的pojo类
+   * @author Ryoukai
+   *
+   */
+  public class OrdersCustom extends Orders {
+  	private String username;
+  	private String sex;
+  	private String address;
+  	
+  	public String getUsername() {
+  		return username;
+  	}
+  	public void setUsername(String username) {
+  		this.username = username;
+  	}
+  	public String getSex() {
+  		return sex;
+  	}
+  	public void setSex(String sex) {
+  		this.sex = sex;
+  	}
+  	public String getAddress() {
+  		return address;
+  	}
+  	public void setAddress(String address) {
+  		this.address = address;
+  	}
+  }
+  ```
+
+
+- OrdersMapperCustom.xml
+
+  ```xml
+  <?xml version="1.0" encoding="UTF-8"?>
+  <!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+  <!-- namespace命名空间，作用是对sql进行分类化管理，进行sql隔离 注意: 使用mapper代理方法开发的话，namespace有特殊重要的作用 -->
+  <mapper namespace="com.ryoukai.mybatis.mapper.OrdersMapperCustom">
+  	<!-- 查询订单关联查询用户信息 -->
+  	<select id="findOrdersUser" resultType="com.ryoukai.mybatis.po.OrdersCustom">
+  		select order.*,user.username,user.sex,user.address
+  			from orders, user
+  			where orders.user_id = user.id
+  	</select>
+  	
+  </mapper>
+  ```
+
+- OrdersMapperCustom.java
+
+  ```java
+  package com.ryoukai.mybatis.mapper;
+
+  import java.util.List;
+
+  import com.ryoukai.mybatis.po.OrdersCustom;
+
+  public interface OrdersMapperCustom {
+  	public List<OrdersCustom> findOrdersUser() throws Exception;
+  }
+  ```
+
+- 测试类
+
+  ```java
+  package com.ryoukai.mybatis.mapper;
+
+  import java.io.IOException;
+  import java.io.InputStream;
+  import java.util.List;
+
+  import org.apache.ibatis.io.Resources;
+  import org.apache.ibatis.session.SqlSession;
+  import org.apache.ibatis.session.SqlSessionFactory;
+  import org.apache.ibatis.session.SqlSessionFactoryBuilder;
+  import org.junit.Before;
+  import org.junit.Test;
+
+  import com.ryoukai.mybatis.po.OrdersCustom;
+
+  public class OrdersMapperCustomTest {
+  	
+  	private SqlSessionFactory sqlSessionFactory;
+  	
+  	//此方法在testFindUserById()之前执行
+  	@Before
+  	public void setUp() {
+  		String resource = "SqlMapConfig.xml";
+  		InputStream inputStream = null;
+  		try {
+  			inputStream = Resources.getResourceAsStream(resource);
+  		} catch (IOException e) {
+  			e.printStackTrace();
+  		}
+  		sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
+  		
+  	}
+
+  	@Test
+  	public void testFindOrdersUser() throws Exception {
+  		SqlSession sqlSession = sqlSessionFactory.openSession();
+  		OrdersMapperCustom ordersMapperCustom = sqlSession.getMapper(OrdersMapperCustom.class);
+  		List<OrdersCustom> list = ordersMapperCustom.findOrdersUser();
+  		for(OrdersCustom ordersCustom : list) {
+  			System.out.println(ordersCustom.getUsername());
+  		}
+  	}
+
+  }
+  ```
+
+
+
+#### resultMap
+
+- 使用resultMap将查询结果中的订单信息映射到Orders对象，在Orders类中添加User属性，将关联查询出来的用户信息映射到Oders对象中的User属性中
+
+  Orders.java
+
+  ```java
+  package com.ryoukai.mybatis.po;
+
+  import java.util.Date;
+
+  public class Orders {
+  	private Integer id;
+  	private Integer userId;
+  	private String number;
+  	private Date createtime;
+  	private String note;
+  	//用户信息
+  	private User user;
+  	
+  	public Integer getId() {
+  		return id;
+  	}
+  	public void setId(Integer id) {
+  		this.id = id;
+  	}
+  	public Integer getUserId() {
+  		return userId;
+  	}
+  	public void setUserId(Integer userId) {
+  		this.userId = userId;
+  	}
+  	public String getNumber() {
+  		return number;
+  	}
+  	public void setNumber(String number) {
+  		this.number = number;
+  	}
+  	public Date getCreatetime() {
+  		return createtime;
+  	}
+  	public void setCreatetime(Date createtime) {
+  		this.createtime = createtime;
+  	}
+  	public String getNote() {
+  		return note;
+  	}
+  	public void setNote(String note) {
+  		this.note = note;
+  	}
+  	public User getUser() {
+  		return user;
+  	}
+  	public void setUser(User user) {
+  		this.user = user;
+  	}
+  	
+  }
+  ```
+
+- OrdersMapperCustom.xml
+
+  ```java
+  <?xml version="1.0" encoding="UTF-8"?>
+  <!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+  <!-- namespace命名空间，作用是对sql进行分类化管理，进行sql隔离 注意: 使用mapper代理方法开发的话，namespace有特殊重要的作用 -->
+  <mapper namespace="com.ryoukai.mybatis.mapper.OrdersMapperCustom">
+
+  	<!-- 订单查询关联用户的resultMap -->
+  	<!-- 将整个查询的结果映射到com.ryoukai.mybatis.po.Orders中 -->
+  	<resultMap type="com.ryoukai.mybatis.po.Orders" id="OrdersUserResultMap">
+  		<!-- 配置映射的订单信息 -->
+  		<!-- id:指定查询订单信息中的唯一标识，如果有多个列组成唯一标识，则需要配置多个id
+  			column: 表中代表唯一标识的列
+  			property: po中和表中列对应的属性
+  		-->
+  		<id column="id" property="id"/>
+  		<result column="user_id" property="userId"/>
+  		<result column="number" property="number"/>
+  		<result column="createtime" property="createtime"/>
+  		<result column="note" property="note"/>
+  		
+  		<!-- 配置映射的关联的用户信息 -->
+  		<!-- association: 用于映射关联查询单个对象的信息
+  			property: 要将关联查询的用户信息映射到Orders中的属性
+  		 -->
+  		<association property="user" javaType="com.ryoukai.mybatis.po.User">
+  			<!-- id: 关联查询用户的唯一标识
+  				column: Orders表中唯一标识用户信息的列
+  				javaType: User的po类中与之对应的属性
+  			 -->
+  			<id column="user_id" javaType="id"/>
+  			<result column="username" property="username"/>
+  			<result column="sex" property="sex"/>
+  			<result column="address" property="address"/>
+  		</association>
+  	</resultMap>
+  	
+  	<!-- 使用resultMap查询订单关联查询用户信息 -->
+  	<select id="findOrdersUserResultMap" resultMap="OrdersUserResultMap">
+  		select order.*,user.username,user.sex,user.address
+  			from orders, user
+  			where orders.user_id = user.id
+  	</select>
+  	
+  </mapper>
+  ```
+
+- OrdersMapperCustom.java
+
+  ```java
+  package com.ryoukai.mybatis.mapper;
+
+  import java.util.List;
+
+  import com.ryoukai.mybatis.po.Orders;
+  import com.ryoukai.mybatis.po.OrdersCustom;
+
+  public interface OrdersMapperCustom {
+    
+  	//使用resultMap查询订单关联查询用户信息
+  	public List<Orders> findOrdersUserResultMap() throws Exception;
+  }
+  ```
+
+  ​
+
