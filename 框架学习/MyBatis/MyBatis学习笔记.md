@@ -1090,6 +1090,7 @@
 
 
 
+
 ### 5.02 一对一查询
 
 - 需求: 查询订单信息，关联查询创建订单的用户信息
@@ -1378,9 +1379,9 @@
   		<association property="user" javaType="com.ryoukai.mybatis.po.User">
   			<!-- id: 关联查询用户的唯一标识
   				column: Orders表中唯一标识用户信息的列
-  				javaType: User的po类中与之对应的属性
+  				property: User的po类中与之对应的属性
   			 -->
-  			<id column="user_id" javaType="id"/>
+  			<id column="user_id" property="id"/>
   			<result column="username" property="username"/>
   			<result column="sex" property="sex"/>
   			<result column="address" property="address"/>
@@ -1416,3 +1417,32 @@
 
   ​
 
+
+#### ResultType和ResultMap的对比
+
+- 实现一对一查询，使用resultType实现较为简单，如果pojo中没有包括查询出来的列名，需要增加对应的属性，即可完成映射，如果没有查询结果的特殊要求，建议使用resultType
+- resultMap需要单独定义resultMap，实现有点麻烦，如果对查询结果有特殊要求，使用resultMap可以完成将关联查询映射到pojo的属性中
+- resultMap可以实现延迟加载，而resultType无法实现延迟加载
+
+
+
+### 5.03 一对多查询
+
+- 需求: 查询订单及订单明细的信息
+
+- 确定主查询表和关联查询表
+
+  - 主查询表: 订单表
+  - 关联查询表: 订单明细表
+
+- sql语句
+
+  ```mysql
+  select order.*,user.username,user.sex,user.address
+  from orders, user, orderdetail --外连接
+  where orders.user_id=user.id and orderdetail.orders_id=orders.id;
+  ```
+
+  ​
+
+  ​
