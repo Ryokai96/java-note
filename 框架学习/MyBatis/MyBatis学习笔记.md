@@ -1426,6 +1426,7 @@
 
 
 
+
 ### 5.03 一对多查询
 
 - 需求: 查询订单及订单明细的信息
@@ -1438,11 +1439,271 @@
 - sql语句
 
   ```mysql
-  select order.*,user.username,user.sex,user.address
-  from orders, user, orderdetail --外连接
-  where orders.user_id=user.id and orderdetail.orders_id=orders.id;
+  select 
+  	order.*,
+  	user.username,
+  	user.sex,
+  	user.address,
+  	orderdetail.id orderdetail_id,	-- 使用别名，防止和order.id重复
+  	orderdetail.items_id,
+  	orderdetail.items_num,
+  	orderdetail.orders_id
+  from 
+  	orders, 
+  	user, 
+  	orderdetail -- 外连接
+  where 
+  	orders.user_id=user.id and orderdetail.orders_id=orders.id;
   ```
 
-  ​
+- 要求对orders的映射不能出现重复记录
 
-  ​
+  在Orders.java中添加List\<Orderdetail> orderdetails属性
+
+  最终会将订单信息映射到orders中，订单所对应的订单明细映射到orders中的orderdetails属性中
+
+  每个orders中的orderdetails属性存储了该订单所对应的订单明细
+
+- 在Orders.java中添加订单明细属性
+
+  ```java
+  package com.ryoukai.mybatis.po;
+
+  import java.util.Date;
+  import java.util.List;
+
+  public class Orders {
+  	private Integer id;
+  	private Integer userId;
+  	private String number;
+  	private Date createtime;
+  	private String note;
+  	//用户信息
+  	private User user;
+  	//订单明细
+  	private  List<Orderdetail> orderdetails;
+  	
+  	public Integer getId() {
+  		return id;
+  	}
+  	public void setId(Integer id) {
+  		this.id = id;
+  	}
+  	public Integer getUserId() {
+  		return userId;
+  	}
+  	public void setUserId(Integer userId) {
+  		this.userId = userId;
+  	}
+  	public String getNumber() {
+  		return number;
+  	}
+  	public void setNumber(String number) {
+  		this.number = number;
+  	}
+  	public Date getCreatetime() {
+  		return createtime;
+  	}
+  	public void setCreatetime(Date createtime) {
+  		this.createtime = createtime;
+  	}
+  	public String getNote() {
+  		return note;
+  	}
+  	public void setNote(String note) {
+  		this.note = note;
+  	}
+  	public User getUser() {
+  		return user;
+  	}
+  	public void setUser(User user) {
+  		this.user = user;
+  	}
+  	public List<Orderdetail> getOrderdetails() {
+  		return orderdetails;
+  	}
+  	public void setOrderdetails(List<Orderdetail> orderdetails) {
+  		this.orderdetails = orderdetails;
+  	}
+  	
+  }
+  ```
+
+- OrdersMapperCustom.xml
+
+  ```xml
+  <?xml version="1.0" encoding="UTF-8"?>
+  <!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+  <!-- namespace命名空间，作用是对sql进行分类化管理，进行sql隔离 注意: 使用mapper代理方法开发的话，namespace有特殊重要的作用 -->
+  <mapper namespace="com.ryoukai.mybatis.mapper.OrdersMapperCustom">
+  	<!-- 查询订单关联查询用户信息 -->
+  	<select id="findOrdersUser" resultType="com.ryoukai.mybatis.po.OrdersCustom">
+  		select order.*,user.username,user.sex,user.address
+  			from orders, user
+  			where orders.user_id = user.id
+  	</select>
+  	
+  	<!-- 订单查询关联用户的resultMap -->
+  	<!-- 将整个查询的结果映射到com.ryoukai.mybatis.po.Orders中 -->
+  	<resultMap type="com.ryoukai.mybatis.po.Orders" id="OrdersUserResultMap">
+  		<!-- 配置映射的订单信息 -->
+  		<!-- id:指定查询订单信息中的唯一标识，如果有多个列组成唯一标识，则需要配置多个id
+  			column: 表中代表唯一标识的列
+  			property: po中和表中列对应的属性
+  		-->
+  		<id column="id" property="id"/>
+  		<result column="user_id" property="userId"/>
+  		<result column="number" property="number"/>
+  		<result column="createtime" property="createtime"/>
+  		<result column="note" property="note"/>
+  		
+  		<!-- 配置映射的关联的用户信息 -->
+  		<!-- association: 用于映射关联查询单个对象的信息
+  			property: 要将关联查询的用户信息映射到Orders中的属性
+  		 -->
+  		<association property="user" javaType="com.ryoukai.mybatis.po.User">
+  			<!-- id: 关联查询用户的唯一标识
+  				column: Orders表中唯一标识用户信息的列
+  				property: User的po类中与之对应的属性
+  			 -->
+  			<id column="user_id" property="id"/>
+  			<result column="username" property="username"/>
+  			<result column="sex" property="sex"/>
+  			<result column="address" property="address"/>
+  		</association>
+  	</resultMap>
+  	
+  	<!-- 查询订单及订单明细的resultmap
+  	使用extends继承，就不用在这里配置订单信息和用户信息的映射
+  	 -->
+  	<resultMap type="com.ryoukai.mybatis.po.Orders" id="OrdersAndOrderdetailResultMap" extends="OrdersUserResultMap">
+  		
+  		<!-- 订单明细信息 -->
+  		<!-- 一个订单可关联查询出多条订单明细，要使用collection进行映射
+  		collection: 对关联查询到多条记录映射到集合对象中
+  		property: 将关联查询到的多条记录映射到Orders中的哪个属性中
+  		ofType: 指定要映射到集合属性中pojo的类型
+  		-->
+  		<collection property="orderdetails" ofType="com.ryoukai.mybatis.po.Orderdetail">
+  			<!-- id: 订单明细的唯一标识
+  				property: 要将订单明细的唯一标识映射到Orderdetail类中的哪个属性
+  			-->
+  			<id column="orderdetail_id" property="id"/>
+  			<result column="items_id" property="itemsId"/>
+  			<result column="items_num" property="itemsNum"/>
+  			<result column="orders_id" property="ordersId"/>
+  		</collection>
+  	</resultMap>
+  	
+  	
+  	<!-- 使用resultMap查询订单关联查询用户信息 -->
+  	<select id="findOrdersUserResultMap" resultMap="OrdersUserResultMap">
+  		select order.*,user.username,user.sex,user.address
+  			from orders, user
+  			where orders.user_id = user.id
+  	</select>
+  	
+  	<!-- 使用resultMap查询订单关联查询用户信息及订单明细 -->
+  	<select id="findOrdersAndOrderdetailResultMap" resultMap="OrdersAndOrderdetailResultMap">
+  		select order.*,user.username,user.sex,user.address,orderdetail.id orderdetail_id,orderdetail.items_id,orderdetail.items_num,orderdetail.orders_id
+  			from orders, user, orderdetail
+  			where orders.user_id = user.id and orderdetail.orders_id=orders.id
+  	</select>
+  	
+  </mapper>
+  ```
+
+- OrdersMapperCustom.java
+
+  ```java
+  package com.ryoukai.mybatis.mapper;
+
+  import java.util.List;
+
+  import com.ryoukai.mybatis.po.Orders;
+  import com.ryoukai.mybatis.po.OrdersCustom;
+
+  public interface OrdersMapperCustom {
+  	public List<OrdersCustom> findOrdersUser() throws Exception;
+  	
+  	//使用resultMap查询订单关联查询用户信息
+  	public List<Orders> findOrdersUserResultMap() throws Exception;
+  	
+  	//查询订单(关联用户)及订单明细
+  	public List<Orders> findOrdersAndOrderdetailResultMap() throws Exception;
+  }
+  ```
+
+- 测试类
+
+  ```java
+  package com.ryoukai.mybatis.mapper;
+
+  import java.io.IOException;
+  import java.io.InputStream;
+  import java.util.List;
+
+  import org.apache.ibatis.io.Resources;
+  import org.apache.ibatis.session.SqlSession;
+  import org.apache.ibatis.session.SqlSessionFactory;
+  import org.apache.ibatis.session.SqlSessionFactoryBuilder;
+  import org.junit.Before;
+  import org.junit.Test;
+
+  import com.ryoukai.mybatis.po.Orders;
+  import com.ryoukai.mybatis.po.OrdersCustom;
+
+  public class OrdersMapperCustomTest {
+  	
+  	private SqlSessionFactory sqlSessionFactory;
+  	
+  	//此方法在testFindUserById()之前执行
+  	@Before
+  	public void setUp() {
+  		String resource = "SqlMapConfig.xml";
+  		InputStream inputStream = null;
+  		try {
+  			inputStream = Resources.getResourceAsStream(resource);
+  		} catch (IOException e) {
+  			e.printStackTrace();
+  		}
+  		sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
+  		
+  	}
+
+  	@Test
+  	public void testFindOrdersUser() throws Exception {
+  		SqlSession sqlSession = sqlSessionFactory.openSession();
+  		OrdersMapperCustom ordersMapperCustom = sqlSession.getMapper(OrdersMapperCustom.class);
+  		List<OrdersCustom> list = ordersMapperCustom.findOrdersUser();
+  		for(OrdersCustom ordersCustom : list) {
+  			System.out.println(ordersCustom.getUsername());
+  		}
+  	}
+  	
+  	@Test
+  	public void testFindOrdersAndOrderdetailResultMap() throws Exception {
+  		SqlSession sqlSession = sqlSessionFactory.openSession();
+  		OrdersMapperCustom ordersMapperCustom = sqlSession.getMapper(OrdersMapperCustom.class);
+  		List<Orders> list = ordersMapperCustom.findOrdersAndOrderdetailResultMap();
+  		for(Orders order : list) {
+  			System.out.println(order.getOrderdetails());
+  		}
+  	}
+
+  }
+  ```
+
+- 小结
+
+  - MyBatis使用resultMap中collection对关联查询的多条记录映射到一个list集合属性中
+  - 若使用resultTyoe实现，将订单明细映射到Orders中的orderdetails属性中，则需要自己使用双重循环遍历，去掉重复记录
+
+
+
+### 5.04 多对多查询
+
+- 需求: 查询用户及购买商品信息
