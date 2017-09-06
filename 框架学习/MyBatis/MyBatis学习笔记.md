@@ -1103,7 +1103,7 @@
 - sql语句
 
   ```sql
-  select order.*,user.username,user.sex,user.address
+  select orders.*,user.username,user.sex,user.address
   from orders, user --外连接
   where orders.user_id = user.id;
   ```
@@ -1214,7 +1214,7 @@
   <mapper namespace="com.ryoukai.mybatis.mapper.OrdersMapperCustom">
   	<!-- 查询订单关联查询用户信息 -->
   	<select id="findOrdersUser" resultType="com.ryoukai.mybatis.po.OrdersCustom">
-  		select order.*,user.username,user.sex,user.address
+  		select orders.*,user.username,user.sex,user.address
   			from orders, user
   			where orders.user_id = user.id
   	</select>
@@ -1390,7 +1390,7 @@
   	
   	<!-- 使用resultMap查询订单关联查询用户信息 -->
   	<select id="findOrdersUserResultMap" resultMap="OrdersUserResultMap">
-  		select order.*,user.username,user.sex,user.address
+  		select orders.*,user.username,user.sex,user.address
   			from orders, user
   			where orders.user_id = user.id
   	</select>
@@ -1440,7 +1440,7 @@
 
   ```mysql
   select 
-  	order.*,
+  	orders.*,
   	user.username,
   	user.sex,
   	user.address,
@@ -1541,7 +1541,7 @@
   <mapper namespace="com.ryoukai.mybatis.mapper.OrdersMapperCustom">
   	<!-- 查询订单关联查询用户信息 -->
   	<select id="findOrdersUser" resultType="com.ryoukai.mybatis.po.OrdersCustom">
-  		select order.*,user.username,user.sex,user.address
+  		select orders.*,user.username,user.sex,user.address
   			from orders, user
   			where orders.user_id = user.id
   	</select>
@@ -1601,7 +1601,7 @@
   	
   	<!-- 使用resultMap查询订单关联查询用户信息 -->
   	<select id="findOrdersUserResultMap" resultMap="OrdersUserResultMap">
-  		select order.*,user.username,user.sex,user.address
+  		select orders.*,user.username,user.sex,user.address
   			from orders, user
   			where orders.user_id = user.id
   	</select>
@@ -1707,3 +1707,657 @@
 ### 5.04 多对多查询
 
 - 需求: 查询用户及购买商品信息
+
+- 查询主表和关联表: 
+
+  - 主表: 用户表
+  - 关联表: 由于用户和商品没有直接关联，是通过订单和订单明细进行关联，所以关联表是orders、orderdetail、items
+
+- sql语句
+
+  ```mysql
+  select 
+  	orders.*,
+  	user.username,
+  	user.sex,
+  	user.address,
+  	orderdetail.id orderdetail_id,	-- 使用别名，防止和order.id重复
+  	orderdetail.items_id,
+  	orderdetail.items_num,
+  	orderdetail.orders_id,
+  	items.name items_name,
+  	items.detail items_detail,
+  	items.price items_price
+  from 
+  	orders, 
+  	user, 
+  	orderdetail,
+  	items
+  where 
+  	orders.user_id=user.id and orderdetail.orders_id=orders.id and orderdetail.items_id=items.id;
+  ```
+
+- 映射思路:
+
+  - 将用户信息映射到user中
+  - 在user类中添加订单列表属性 List\<Orders> ordersList，将用户创建的订单映射到ordersList
+  - 在Orders中添加订单明细列表属性 List\<Orderdetail> orderdetails，将订单明细映射到orderdetails
+  - 在Orderdetail中添加items属性，将订单明细所对应的商品映射到items中
+
+- OrdersMapperCustom.xml
+
+  ```xml
+  <?xml version="1.0" encoding="UTF-8"?>
+  <!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+  <mapper namespace="com.ryoukai.mybatis.mapper.OrdersMapperCustom">
+    
+  	<!-- 查询用户及其购买的商品 -->
+  	<resultMap type="com.ryoukai.mybatis.po.User" id="UserAndItemsResultMap">
+  		<!-- 用户信息 -->
+  		<id column="user_id" property="id"/>
+  		<result column="username" property="username"/>
+  		<result column="sex" property="sex"/>
+  		<result column="address" property="address"/>
+  		
+  		<!-- 订单信息，一个用户对应多个订单，使用collection -->
+  		<collection property="ordersList" ofType="com.ryoukai.mybatis.po.Orders">
+  			<id column="id" property="id"/>
+  			<result column="user_id" property="userId"/>
+  			<result column="number" property="number"/>
+  			<result column="createtime" property="createtime"/>
+  			<result column="note" property="note"/>
+  			
+  			<!-- 订单明细，一个订单包含多个订单明细 -->
+  			<collection property="orderdetails" ofType="com.ryoukai.mybatis.po.Orderdetail">
+  				<id column="orderdetail_id" property="id"/>
+  				<result column="items_id" property="itemsId"/>
+  				<result column="items_num" property="itemsNum"/>
+  				<result column="orders_id" property="ordersId"/>
+  				
+  				<!-- 商品信息，一个订单明细对应一个商品 -->
+  				<association property="items" javaType="com.ryoukai.mybatis.po.Items">
+  					<id column="items_id" property="id"/>
+  					<result column="items_name" property="name"/>
+  					<result column="items_detail" property="detail"/>
+  					<result column="items_price" property="price"/>
+  				</association>
+  			</collection>
+  		</collection>
+  	
+  	</resultMap>
+
+  	
+  	<!-- 使用resultMap查询用户及购买的商品信息 -->
+  	<select id="findUserAndItemsResultMap" resultMap="UserAndItemsResultMap">
+  		select 
+  			orders.*,
+  			user.username,
+  			user.sex,
+  			user.address,
+  			orderdetail.id orderdetail_id,
+  			orderdetail.items_id,
+  			orderdetail.items_num,
+  			orderdetail.orders_id,
+  			items.name items_name,
+  			items.detail items_detail,
+  			items.price items_price
+  		from 
+  			orders, 
+  			user, 
+  			orderdetail,
+  			items
+  		where 
+  			orders.user_id=user.id and orderdetail.orders_id=orders.id and orderdetail.items_id=items.id
+  	</select>
+  	
+  </mapper>
+  ```
+
+- OrdersMapperCustom.java
+
+  ```java
+  package com.ryoukai.mybatis.mapper;
+
+  import java.util.List;
+
+  import com.ryoukai.mybatis.po.User;
+
+  public interface OrdersMapperCustom {
+  	
+  	//查询用户购买商品信息
+  	public List<User> findUserAndItemsResultMap() throws Exception;
+  }
+  ```
+
+- 测试类
+
+  ```java
+  package com.ryoukai.mybatis.mapper;
+
+  import java.io.IOException;
+  import java.io.InputStream;
+  import java.util.List;
+
+  import org.apache.ibatis.io.Resources;
+  import org.apache.ibatis.session.SqlSession;
+  import org.apache.ibatis.session.SqlSessionFactory;
+  import org.apache.ibatis.session.SqlSessionFactoryBuilder;
+  import org.junit.Before;
+  import org.junit.Test;
+
+  import com.ryoukai.mybatis.po.User;
+
+  public class OrdersMapperCustomTest {
+  	
+  	private SqlSessionFactory sqlSessionFactory;
+  	
+  	//此方法在testFindUserById()之前执行
+  	@Before
+  	public void setUp() {
+  		String resource = "SqlMapConfig.xml";
+  		InputStream inputStream = null;
+  		try {
+  			inputStream = Resources.getResourceAsStream(resource);
+  		} catch (IOException e) {
+  			e.printStackTrace();
+  		}
+  		sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
+  		
+  	}
+  	
+  	@Test
+  	public void testFindUserAndItemsResultMap() throws Exception {
+  		SqlSession sqlSession = sqlSessionFactory.openSession();
+  		OrdersMapperCustom ordersMapperCustom = sqlSession.getMapper(OrdersMapperCustom.class);
+  		List<User> list = ordersMapperCustom.findUserAndItemsResultMap();
+  		System.out.println(list);
+  	}
+
+  }
+  ```
+
+- 多对多查询总结:
+
+  - 查询用户购买的商品信息明细清单(用户名、用户地址、购买商品名称、购买商品时间、购买商品数量)，使用resultType将查询的记录映射到一个扩展的pojo中，很简单实现明细清单的功能
+  - 使用resultMap是针对那些查询结果映射有特殊要求的功能，比如要求映射成的list中包含多个list
+
+
+
+### 5.05 延迟加载(懒加载)
+
+- 延迟加载: 先从单表查询、需要时再从关联表去关联查询，大大提高数据库性能，因为查询单表要比关联查询多张表快
+  - 例: 查询订单并且关联查询用户信息，如果先查询订单信息即可满足要求，当我们需要查询用户信息时再查询用户信息。对用户信息的按需查询就叫做延迟加载
+- resultMap拥有association和collection，具备延迟加载的功能
+
+
+
+#### 使用association实现延迟加载
+
+- 需求: 查询订单并且关联查询用户信息
+
+- 需要定义两个mapper的方法对应的statement
+
+  - 查询订单信息，在查询订单的statement中使用assocition去延迟加载关联查询用户信息
+  - 关联查询用户信息(通过查询到的订单信息中user_id去关联查询用户信息)
+
+- OrdersMapperCustom.xml
+
+  ```xml
+  <?xml version="1.0" encoding="UTF-8"?>
+  <!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+  <mapper namespace="com.ryoukai.mybatis.mapper.OrdersMapperCustom">	
+  	
+  	<!-- 延迟加载的resultMap -->
+  	<resultMap type="com.ryoukai.mybatis.po.Orders" id="OrdersUserLazyLoadingResultMap">
+  		<!-- 对订单信息进行映射配置 -->
+  		<id column="id" property="id"/>
+  		<result column="user_id" property="userId"/>
+  		<result column="number" property="number"/>
+  		<result column="createtime" property="createtime"/>
+  		<result column="note" property="note"/>
+  		
+  		<!-- 实现对用户信息进行延迟加载
+  			select: 指定延迟加载需要执行的statement的id(根据user_id查询用户信息的statement)
+  				          这里可使用userMapper.xml中的findUserById完成根据用户id查询用户信息
+  			column: 订单信息中关联用户信息查询的列(user_id)
+  			关联查询的sql等价为:
+  			select orders.*
+  				(select username from user where orders.userid = user.id)username,
+  				(selectsex from user where orders.user_id = user.id)sex
+  			from orders
+  		-->
+  		<association property="user" javaType="com.ryoukai.mybatis.po.User" select="com.ryoukai.mybatis.mapper.UserMapper.findUserById" column="user_id"></association>
+  	</resultMap>
+  	
+  	<!-- 查询订单关联查询用户，用户信息需要延迟加载 -->
+  	<select id="findOrdersUserLazyLoading" resultMap="OrdersUserLazyLoadingResultMap">
+  		select * from orders
+  	</select>
+  	
+  </mapper>
+  ```
+
+  UserMapper.xml
+
+  ```xml
+  <?xml version="1.0" encoding="UTF-8"?>
+  <!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+  <mapper namespace="com.ryoukai.mybatis.mapper.UserMapper">
+  	<select id="findUserById" parameterType="int"
+  		resultType="com.ryoukai.mybatis.po.User">
+  		<!-- #{}表示占位符，其中的id表示接收输入的参数，参数名称为id，若输入的参数是简单类型，#{}中的参数名称可以任意 -->
+  		select * from user where id=#{id}
+  	</select>
+  </mapper>
+  ```
+
+- 通过resultMap将延迟加载的执行进行配置，先执行findOrderUserLazyLoading，当需要去查询用户的时候再去执行findUserById
+
+- OdersMapperCustom.java
+
+  ```java
+  package com.ryoukai.mybatis.mapper;
+
+  import java.util.List;
+
+  import com.ryoukai.mybatis.po.Orders;
+
+  public interface OrdersMapperCustom {
+  	//查询订单关联查询用户，用户信息是延迟加载
+  	public List<Orders> findOrdersUserLazyLoading() throws Exception;
+  }
+  ```
+
+- MyBatis默认没有开启延迟加载，需要在SqlMapConfig.xml中配置
+
+  SqlMapConfig.xml
+
+  ```xml
+  <?xml version="1.0" encoding="UTF-8"?>
+  <!DOCTYPE configuration
+  PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+  <configuration>
+  	<!-- 和Spring整合后environments配置将废除 -->
+  	<environments default="development">
+  		<environment id="development">
+  			<!-- 使用jdbc事务管理，事务控制由MyBatis完成 -->
+  			<transactionManager type="JDBC" />
+  			<!-- 数据库连接池，由MyBatis管理 -->
+  			<dataSource type="POOLED">
+  				<property name="driver" value="com.mysql.jdbc.Driver" />
+  				<property name="url"
+  					value="jdbc:mysql://localhost:3306/testmybatis?characterEncoding=utf-8" />
+  				<property name="username" value="root" />
+  				<property name="password" value="root" />
+  			</dataSource>
+  		</environment>
+  	</environments>
+  	
+  	<!-- 配置延迟加载 -->
+  	<settings>
+  		<!-- 打开延迟加载 -->
+  		<setting name="lazyLoadingEnabled" value="true"/>
+  		<!-- 将积极加载改为按需加载 -->
+  		<setting name="aggressiveLazyLoading" value="false"/>
+  	</settings>
+
+  	<!-- 加载映射文件 -->
+  	<mappers>
+  		<mapper resource="sqlmap/User.xml" />
+  		<mapper resource="mapper/UserMapper.xml"/>
+  	</mappers>
+  </configuration>
+  ```
+
+- 测试类: 
+
+  1. 执行findOrdersUserLazyLoading()方法，该方法内部调用OdersMapperCustom.xml中的findOrdersUserLazyLoading查询Orders信息(此时是单表查询)
+  2. 在程序中去遍历上一步查询出的List\<Orders>，当我们调用Oders中的getUser方法时，开始进行延迟加载
+  3. 延迟加载，调用UserMapper.xml中的findUserById去获取用户信息
+
+  OrdersMapperCustomTest.java
+
+  ```java
+  package com.ryoukai.mybatis.mapper;
+
+  import java.io.IOException;
+  import java.io.InputStream;
+  import java.util.List;
+
+  import org.apache.ibatis.io.Resources;
+  import org.apache.ibatis.session.SqlSession;
+  import org.apache.ibatis.session.SqlSessionFactory;
+  import org.apache.ibatis.session.SqlSessionFactoryBuilder;
+  import org.junit.Before;
+  import org.junit.Test;
+
+  import com.ryoukai.mybatis.po.Orders;
+  import com.ryoukai.mybatis.po.User;
+
+  public class OrdersMapperCustomTest {
+  	
+  	private SqlSessionFactory sqlSessionFactory;
+  	
+  	//此方法在testFindUserById()之前执行
+  	@Before
+  	public void setUp() {
+  		String resource = "SqlMapConfig.xml";
+  		InputStream inputStream = null;
+  		try {
+  			inputStream = Resources.getResourceAsStream(resource);
+  		} catch (IOException e) {
+  			e.printStackTrace();
+  		}
+  		sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
+  		
+  	}
+    
+  	//查询订单关联查询用户，用户信息使用延迟加载
+  	@Test
+  	public void testFindOrdersUserLazyLoading() throws Exception {
+  		SqlSession sqlSession = sqlSessionFactory.openSession();
+  		OrdersMapperCustom ordersMapperCustom = sqlSession.getMapper(OrdersMapperCustom.class);
+  		//查询订单信息(单表)
+  		List<Orders> list = ordersMapperCustom.findOrdersUserLazyLoading();
+  		//遍历list
+  		for(Orders order : list) {
+  			//执行getUser(去查询用户信息，这里实现按需加载)
+  			User user = order.getUser();
+  			System.out.println(user);
+  		}
+  	}
+
+  }
+  ```
+
+  ​
+
+#### 手动实现延迟加载
+
+- 定义两个mapper方法
+  - 查询订单列表
+  - 根据用户id查询用户信息
+- 实现思路: 
+  1. 执行第一个mapper方法，获取订单信息列表
+  2. 在service中，按需去调用第二个mapper方法去查询用户信息
+
+
+
+## 6. 查询缓存
+
+- 查询缓存: 用于减轻数据库压力，提升数据库性能
+- MyBatis提供一级缓存和二级缓存
+  - 一级缓存是sqlSession级别的缓存，MyBatis在操作数据库时需要构造sqlSession对象，在对象中有一个数据结构(HashMap)用于存储缓存数据，不同的sqlSession之间的缓存数据区域(hashMap)是互不影响的
+  - 二级缓存是mapper级别的缓存，多个sqlSession去操作同一个mapper的sql语句，多个sqlSession去操作数据库所得到的数据会保存在二级缓存区域(多个sqlSession可以共用一个二级缓存区域)
+- 为什么要用缓存
+  - 如果缓存中有数据，就不用从数据库中获取，大大提高系统性能
+
+
+
+### 6.01 一级缓存
+
+#### 一级缓存原理
+
+- 先去找缓存中是否有需要的数据，如果没有，从数据库查询所需数据，得到的数据存储到一级缓存中。如果缓存中有所需数据，直接从缓存中获取所需数据
+- 如果sqlSession去执行commit操作(执行插入、更新、删除)，会清空sqlSession的一级缓存，这样做的目的是为了让缓存中存储的是最新的信息，避免**脏读**
+
+
+
+
+#### 一级缓存测试
+
+- MyBatis默认开启一级缓存，不需要在配置文件中设置
+
+- 测试代码
+
+  ```java
+  @Test
+  	public void testCache1() {
+  		SqlSession sqlSession = sqlSessionFactory.openSession();
+  		UserMapper userMapper = sqlSession.getMapper(UserMapper.class);
+  		
+  		//第一次发起请求，查询id为1的用户
+  		User user1 = userMapper.findUserById(1);
+  		System.out.println(user1);
+  		
+  		//第二次发起请求，查询id为1的用户
+  		User user2 = userMapper.findUserById(1);
+  		System.out.println(user2);
+  		
+        	//如果过sqlSession去执行commit操作，会清空SqlSession的一级缓存
+  		userMapper.updateUser(user1);
+  		sqlSession.commit();
+  		
+  		User user3= userMapper.findUserById(1);
+  		System.out.println(user3);
+  		
+  		sqlSession.close();
+  	}
+  ```
+
+  ​
+
+
+#### 一级缓存的应用
+
+- MyBatis和Spring整合开发，事务控制在service中，一个service方法中包括很多mapper方法调用，使用一级缓存可提高性能
+
+
+
+### 6.02 二级缓存
+
+- 如果执行两次service调用查询相同的数据，不走一级缓存，因为service方法执行一次后sqlSession就会关闭，一级缓存会清空
+
+
+
+#### 二级缓存原理
+
+- 二级缓存比一级缓存范围更大，多个sqlSession可以共享一个Mapper的二级缓存区域(不同二级缓存区域按namespace分)
+- 每个namespace的mapper有一个二级缓存区域，两个mapper的namespace如果相同，这两个mapper执行sql查询到数据将存在相同的二级缓存区域中
+
+
+
+#### 二级缓存测试
+
+- 开启二级缓存: MyBatis的二级缓存是mapper范围级别，除了在SqlMapConfig.xml中开启外(默认已开启)，还要在具体的mapper.xml中开启二级缓存
+
+  SqlMapConfig.xml
+
+  ```xml
+  <?xml version="1.0" encoding="UTF-8"?>
+  <!DOCTYPE configuration
+  PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+  <configuration>
+  	<!-- 和Spring整合后environments配置将废除 -->
+  	<environments default="development">
+  		<environment id="development">
+  			<!-- 使用jdbc事务管理，事务控制由MyBatis完成 -->
+  			<transactionManager type="JDBC" />
+  			<!-- 数据库连接池，由MyBatis管理 -->
+  			<dataSource type="POOLED">
+  				<property name="driver" value="com.mysql.jdbc.Driver" />
+  				<property name="url"
+  					value="jdbc:mysql://localhost:3306/testmybatis?characterEncoding=utf-8" />
+  				<property name="username" value="root" />
+  				<property name="password" value="root" />
+  			</dataSource>
+  		</environment>
+  	</environments>
+  	
+  	<!-- 配置延迟加载 -->
+  	<settings>
+  		<!-- 打开延迟加载 -->
+  		<setting name="lazyLoadingEnabled" value="true"/>
+  		<!-- 将积极加载改为按需加载 -->
+  		<setting name="aggressiveLazyLoading" value="false"/>
+  		
+  		<!-- 开启二级缓存 -->
+  		<setting name="cacheEnabled" value="true"/>
+  	</settings>
+
+  	<!-- 加载映射文件 -->
+  	<mappers>
+  		<mapper resource="sqlmap/User.xml" />
+  		<mapper resource="mapper/UserMapper.xml"/>
+  	</mappers>
+  </configuration>
+  ```
+
+  UserMapper.xml
+
+  ```xml
+  <?xml version="1.0" encoding="UTF-8"?>
+  <!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+  <!-- namespace命名空间，作用是对sql进行分类化管理，进行sql隔离 注意: 使用mapper代理方法开发的话，namespace有特殊重要的作用 -->
+  <mapper namespace="com.ryoukai.mybatis.mapper.UserMapper">
+  	
+  	<!-- 开启本mapper的namespace下的二级缓存 -->
+  	<cache/>
+  	
+  	<!-- 在映射文件中配置sql语句 -->
+  	<!-- id表示statement的id，parameterType表示参数类型，resultType表示输出结果所映射的java对象类型 -->
+  	<select id="findUserById" parameterType="int"
+  		resultType="com.ryoukai.mybatis.po.User">
+  		<!-- #{}表示占位符，其中的id表示接收输入的参数，参数名称为id，若输入的参数是简单类型，#{}中的参数名称可以任意 -->
+  		select * from user where id=#{id}
+  	</select>
+  	
+  	<!-- 模糊查询，可能返回多条 -->
+  	<select id="findUserByName" parameterType="java.lang.String" resultType="com.ryoukai.mybatis.po.User">
+  		<!-- ${}表示拼接sql字符串，将接收到的参数不加任何修饰拼接在sql中 -->
+  		<!-- 使用${}容易引起sql注入，如果传入的是简单类型，${}中只能写value -->
+  		select * from user where username like '%${value}%'
+  	</select>
+  	
+  	<!-- 添加用户 -->
+  	<!-- parameterType中填写pojo类型 -->
+  	<insert id="insertUser" parameterType="com.ryoukai.mybatis.po.User">
+  		<!-- 将插入数据的自增主键返回到user对象中 -->
+  		<!-- keyProperty: 将返回的结果设置到parameterType指定的对象对应名称的属性
+  			order: 指定select语句相对于insert语句的执行顺序
+  			resultType: 指定select返回结果的类型
+  		 -->
+  		<selectKey keyProperty="id" order="AFTER" resultType="java.lang.Integer">
+  			<!-- last_insert_id()时mysql的函数，返回刚刚insert进去记录的主键值，只适用于自增主键 -->
+  			select last_insert_id()
+  		</selectKey>
+  		
+  		<!-- #{}中只当属性名，MyBatis通过OGNL获取对象的属性值 -->
+  		insert into user(id,username,birthday,sex,address) values(#{id},#{username},#{birthday},#{sex},#{address})
+  		
+  		<!-- 使用mysql的uuid()函数生成主键，将主键设置到user对象的id属性中 -->
+  		<!-- <selectKey keyProperty="id" order="BEFORE" resultType="java.lang.String">
+  			select uuid()
+  		</selectKey> -->
+  	</insert>
+  	
+  	<!-- 根据id删除用户 -->
+  	<delete id="deleteUser" parameterType="java.lang.Integer">
+  		delete from user where id=#{id}
+  	</delete>
+  	
+  	<!-- 根据id更新用户，注意: user对象中的id为查询所用id -->
+  	<update id="updateUser" parameterType="com.ryoukai.mybatis.po.User">
+  		<!-- #{id}为从输入user对象中获取id的属性值 -->
+  		update user set username=#{username},birthday=#{birthday},sex=#{sex},address=#{address} where id=#{id}
+  	</update>
+  	
+  </mapper>
+  ```
+
+- 调用pojo类实现序列化接口: 因为二级缓存数据存储介质多种多样，不一定在内存，为了将缓存数据取出，执行反序列化操作
+
+  User.java
+
+  ```java
+  public class User implements Serializable
+  ```
+
+- 测试方法
+
+  ```java
+  @Test
+  public void testCache2() {
+      SqlSession sqlSession1 = sqlSessionFactory.openSession();
+      SqlSession sqlSession2 = sqlSessionFactory.openSession();
+      SqlSession sqlSession3 = sqlSessionFactory.openSession();
+
+      UserMapper userMapper1 = sqlSession1.getMapper(UserMapper.class);
+      UserMapper userMapper2 = sqlSession2.getMapper(UserMapper.class);
+      UserMapper userMapper3 = sqlSession3.getMapper(UserMapper.class);
+
+      //第一次发起请求，查询id为1的用户
+      User user1 = userMapper1.findUserById(1);
+      System.out.println(user1);
+
+      //使用sqlSession3执行commit()操作
+      User user2 = userMapper2.findUserById(1);
+      user2.setUsername("小明");
+      sqlSession3.commit();
+
+      User user3 = userMapper3.findUserById(1);
+      System.out.println(user3);
+
+      sqlSession1.close();
+      sqlSession2.close();
+      sqlSession3.close();
+  }
+  ```
+
+- 禁用二级缓存
+
+  - 在statement中设置useCache="false"可以禁用当前select语句的二级缓存，即每次查询都会发出sql去数据库查询，useCache默认是ture
+
+  例: 在UserMapper.xml中禁用findUserById的二级缓存
+
+  ```xml
+  <select id="findUserById" parameterType="int" resultType="com.ryoukai.mybatis.po.User" useCache="false">
+      <!-- #{}表示占位符，其中的id表示接收输入的参数，参数名称为id，若输入的参数是简单类型，#{}中的参数名称可以任意 -->
+      select * from user where id=#{id}
+  </select>
+  ```
+
+- 刷新缓存(清空缓存)
+
+  - 在mapper的同一个namespace中，如果有其它insert、update、delete操作数据后需要刷新缓存，如果不执行刷新缓存，就会出现脏读
+  - 设置statement配置中的flushCache="true"可以刷新缓存，默认情况下flushCache的值为true，如果改成false则不会刷新，容易出现脏读
+  - 一般情况下，执行完commit操作都需要刷新缓存，避免脏读
+
+  例如: 关闭deleteUser的缓存刷新
+
+  ```xml
+  <!-- 根据id删除用户 -->
+  <delete id="deleteUser" parameterType="java.lang.Integer" flushCache="false">
+    	delete from user where id=#{id}
+  </delete>
+  ```
+
+- Cache参数
+
+  - flushInterval(刷新间隔)可以被设置为任意的正整数，代表隔多少毫秒执行一次缓存刷新，默认情况不会自动刷新缓存
+  - size(引用数目)可以被设置为任意的正整数，表示可缓存的对象的数目，默认值是1024
+  - readOnly(只读)属性可以被设置为true或false。只读的缓存会给所有调用者返回缓存对象相同的实例，所以这些对象不能被修改。可读写的缓存会返回缓存对象的拷贝(通过序列化)，这会慢一些，但是安全，因此默认是readOnly的值默认是false
+
+  例:
+
+  ```xml
+  <cache eviction="FIFO" flushInterval="60000" size="512" readOnly="true"/>
+  ```
+
+  ​
