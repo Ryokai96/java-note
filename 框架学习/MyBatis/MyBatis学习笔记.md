@@ -2361,3 +2361,304 @@
   ```
 
   ​
+
+
+
+### 6.03 MyBatis整合Ehcache
+
+- Ehcache是一个分布式缓存框架
+
+
+
+#### 分布式缓存
+
+- 为了提高系统并发、性能，一般对系统进行分布式部署(集群部署方式)
+- 不使用分布式缓存，缓存的数据在各自服务器单独存储，不方便系统开发。所以使用分布式缓存对缓存数据进行集中式管理
+- MyBatis无法实现分布式缓存，需要和其他的分布式缓存框架进行整合
+
+
+
+#### 整合方法
+
+- MyBatis提供了一个cache接口，如果要实现自己的缓存逻辑，就实现这个cache接口即可
+
+- MyBatis提供了一个cache接口的默认实现类PerpetualCache
+
+- MyBatis和Ehcache整合: MyBatis和Ehcache整合包中提供了一个cache接口的实现类
+
+- 例:
+
+  ```xml
+  <!-- type: 指定cache接口的实现类类型，MyBatis默认使用PerpetualCache -->
+  <cache type="PerpetualCache"/>
+  ```
+
+- MyBatis和Ehcache整合步骤:
+
+  1. 加入整合包:
+
+     - ehcache-core-2.6.8.jar
+     - mybatis-ehcache-1.0.3.jar
+
+  2. 配置mapper中的cache中的type为ehcache对cache接口的实现类型
+
+     ```xml
+     <cache type="org.mybatis.caches.ehcache.EhcacheCache"/>
+     ```
+
+  3. 加入Ehcache的配置文件
+
+     ehcache.xml
+
+     ```xml
+     <ehcache xmlns="http://www.w3/org/2001/XMLSchema-instance"
+     	xsi:xsi:noNamespaceSchemaLocation="../config/ehcache.xsd">
+     	<diskStore path="C:\Users\Ryoukai\Desktop\test"/>
+     	<defaultCache
+     		maxElementsInmemory="1000"
+     		maxElementsOnDisk="10000000"
+     		eternal="false"
+     		overflowToDisk="false"
+     		timeToIdleSeconds="120"
+     		timeToLiveSeconds="120"
+     		diskExpiryThreadIntervalSeconds="120"
+     		memoryStoreEvictionPolicy="LRU">
+     	</defaultCache>	
+     </ehcache>
+     ```
+
+     ​
+
+### 6.04 二级缓存应用场景
+
+- 对于访问多且用户对查询结果实时性要求不高的，可采用MyBatis二级缓存技术降低数据库访问量，提高访问速度，例如: 耗时较高的统计分析sql、电话账单查询sql等
+- 实现方法: 通过设置刷新间隔时间，由MyBatis每隔一段时间自动清空缓存，根据数据变化频率设置缓存刷新间隔flushInterval，比如设置为30分钟、60分钟、24小时等，根据需求而定
+
+
+
+#### 二级缓存局限性
+
+- MyBatis二级缓存对细粒度的数据级别的缓存实现不好，比如如下需求: 对商品信息进行缓存，由于商品信息查询访问量大，但是要求用户每次都能查询到最新的信息，但是MyBatis无法实现当一个商品信息变化时只刷新该商品的信息，因为MyBatis的二级缓存区域以mapper为单位划分，当一个商品信息变化会将所有商品的缓存数据全部清空。解决此类问题需要在业务层根据需求对数据有针对性缓存
+
+
+
+## 7. MyBatis和Spring整合
+
+### 7.01 整合思路: 
+
+- 需要Spring通过单例方式管理SqlSessionFactory
+- Spring和MyBatis整合生成代理对象，使用SqlSessionFactory创建SqlSession。(此步骤由Spring和MyBatis整合自动完成)
+- 持久层的mapper都需要由Spring进行管理
+
+
+
+### 7.01 整合步骤
+
+#### 原始Dao开发整合步骤
+
+1. 导入jar包
+
+   - MyBatis的jar包
+   - Spring的jar包
+   - MyBatis和Spring的整合包: 早期iBatis和Spring整合包由Spring官方提供，现在MyBatis和Spring整合包由MyBatis官方提供
+     - mybatis-spring-1.3.1.jar
+
+2. SqlSessionFactory的配置
+
+   - 在applicationContext.xml配置SqlSessionFactory和数据源
+   - SqlSessionFactory在MyBatis和Spring的整合包下
+
+   applicationContext.xml
+
+   ```xml
+   <beans xmlns="http://www.springframework.org/schema/beans"
+   	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   	xmlns:context="http://www.springframework.org/schema/context"
+   	xmlns:aop="http://www.springframework.org/schema/aop"
+   	xmlns:tx="http://www.springframework.org/schema/tx"
+   	xsi:schemaLocation="http://www.springframework.org/schema/beans
+   	http://www.springframework.org/schema/beans/spring-beans.xsd
+   	http://www.springframework.org/schema/context
+   	http://www.springframework.org/schema/context/spring-context.xsd
+   	http://www.springframework.org/schema/aop
+   	http://www.springframework.org/schema/aop/spring-aop.xsd
+   	http://www.springframework.org/schema/tx
+   	http://www.springframework.org/schema/tx/spring-tx.xsd">
+     
+     	<!-- 加载配置文件 -->
+     	<context:property-placeholder location="classpath:db.properties"/>
+     	
+     	<!-- 配置数据源，使用dbcp连接池 -->
+     	<bean id="dataSource" class="org.apache.commons.dbcp2.BasicDataSource.class" destroy-method="close">
+     		<!-- 加载db.properties -->
+     		<property name="driverClassName" value="${jdbc.driver}"/>
+     		<property name="url" value="${jdbc.url}"/>
+     		<property name="username" value="${jdbc.username}"/>
+     		<property name="password" value="${jdbc.password}"/>
+     		
+     		<property name="maxActive" value="10"/>
+     		<property name="maxIdle" value="5"/>
+     	</bean>
+     	
+     	<!-- 配置sqlSessionFactory -->
+     	<bean id="SqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean.class">
+     		<!-- 加载MyBatis的配置文件 -->
+     		<property name="configLocation" value="mybatis/SqlMapConfig.xml"/>
+     		<!-- 数据源 -->
+     		<property name="dataSource" ref=""/>
+     	</bean>
+     	
+   </beans>
+   ```
+
+3. 配置mapper.xml
+
+   拷贝之前使用的User.xml，稍做修改(修改包名)
+
+   ```xml
+   <?xml version="1.0" encoding="UTF-8"?>
+   <!DOCTYPE mapper
+   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+   <!-- namespace命名空间，作用是对sql进行分类化管理，进行sql隔离 注意: 使用mapper代理方法开发的话，namespace有特殊重要的作用 -->
+   <mapper namespace="test">
+   	<!-- 在映射文件中配置sql语句 -->
+   	<!-- id表示statement的id，parameterType表示参数类型，resultType表示输出结果所映射的java对象类型 -->
+   	<select id="findUserById" parameterType="int"
+   		resultType="com.ryoukai.ssm.po.User">
+   		<!-- #{}表示占位符，其中的id表示接收输入的参数，参数名称为id，若输入的参数是简单类型，#{}中的参数名称可以任意 -->
+   		select * from user where id=#{id}
+   	</select>
+   </mapper>
+   ```
+
+4. 在SqlMapConfig.xml中加载User.xml
+
+   SqlMapConfig.xml
+
+   ```xml
+   <?xml version="1.0" encoding="UTF-8"?>
+   <!DOCTYPE configuration
+   PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+   "http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+   <configuration>
+   	
+   	<!-- 别名定义 -->
+   	<typeAliases>
+   		<package name="com.ryoukai.ssm.po"/>
+   	</typeAliases>
+
+   	<!-- 加载映射文件 -->
+   	<mappers>
+   		<mapper resource="sqlmap/User.xml"/>
+   		
+   		<!-- 批量加载mapper，指定mapper接口的包名，MyBatis自动扫描该包名下所有mapper接口
+   			需遵循的规范: 要将mapper接口类名和mapper.xml映射文件名称保持一致，且在一个目录中
+   		-->
+   		<package name="com.ryoukai.ssm.mapper"/>
+   	</mappers>
+   </configuration>
+   ```
+
+5. pojo类
+
+   拷贝之前使用的pojo类: Items.java、Orderdetail.java、Orders.java、OrdersCustom.java、User.java
+
+6. dao接口
+
+   拷贝之前使用的dao及其实现类: UserDao.java、UserDaoImpl.java
+
+7. 让UserDaoImpl继承SqlSessionDaoSupport
+
+   UserDaoImpl.java
+
+   ```java
+   package com.ryoukai.ssm.dao.impl;
+
+   import org.apache.ibatis.session.SqlSession;
+   import org.mybatis.spring.support.SqlSessionDaoSupport;
+
+   import com.ryoukai.ssm.dao.UserDao;
+   import com.ryoukai.ssm.po.User;
+
+   public class UserDaoImpl extends SqlSessionDaoSupport implements UserDao{
+   	
+   	@Override
+   	public User findUserById(int id) {
+   		//通过继承SqlSessionDaoSupport，使用其getSqlSession()方法得到SqlSession
+   		SqlSession sqlSession = this.getSqlSession();
+   		User user = sqlSession.selectOne("test.findUserById", id);
+   		return user;
+   	}
+   }
+   ```
+
+8. 在applicationContext.xml中配置dao
+
+   ```xml
+   <!-- 原始dao接口 -->
+   <bean id="userDao" class="com.ryoukai.ssm.dao.UserDao">
+   	  <property name="SqlSessionFactory" ref="SqlSessionFactory"/>
+   </bean>
+   ```
+
+9. 测试类
+
+   UserDaoImplTest.java
+
+   ```java
+   package com.ryoukai.ssm.test;
+
+   import org.junit.Before;
+   import org.junit.Test;
+   import org.springframework.context.ApplicationContext;
+   import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+   import com.ryoukai.ssm.dao.UserDao;
+   import com.ryoukai.ssm.po.User;
+
+   public class UserDaoImplTest {
+   	
+   	//Spring容器
+   	private ApplicationContext applicationContext;
+   	
+   	@Before
+   	public void setUp() throws Exception {
+   		applicationContext = new ClassPathXmlApplicationContext("classpath:spring/applicationContext.xml");
+   	}
+
+   	@Test
+   	public void testFindUserById() {
+   		UserDao userDao = (UserDao) applicationContext.getBean("userDao");
+   		//调用UserDao的方法
+   		User user = userDao.findUserById(1);
+   		System.out.println(user);
+   	}
+
+   }
+   ```
+
+   ​
+
+#### mapper代理开发
+
+1. mapper接口
+
+   拷贝UserMapper.java
+
+   ```java
+   package com.ryoukai.ssm.mapper;
+
+   import com.ryoukai.ssm.po.User;
+
+   public interface UserMapper {
+   	
+   	//根据id查询用户信息
+   	public User findUserById(int id);
+   }
+   ```
+
+2. ​
+
