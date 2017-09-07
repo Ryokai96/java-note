@@ -2489,23 +2489,21 @@
      	<context:property-placeholder location="classpath:db.properties"/>
      	
      	<!-- 配置数据源，使用dbcp连接池 -->
-     	<bean id="dataSource" class="org.apache.commons.dbcp2.BasicDataSource.class" destroy-method="close">
+     	<bean id="dataSource" class="org.apache.commons.dbcp2.BasicDataSource" destroy-method="close">
      		<!-- 加载db.properties -->
      		<property name="driverClassName" value="${jdbc.driver}"/>
      		<property name="url" value="${jdbc.url}"/>
      		<property name="username" value="${jdbc.username}"/>
      		<property name="password" value="${jdbc.password}"/>
-     		
-     		<property name="maxActive" value="10"/>
-     		<property name="maxIdle" value="5"/>
+
      	</bean>
      	
      	<!-- 配置sqlSessionFactory -->
-     	<bean id="SqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean.class">
+     	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
      		<!-- 加载MyBatis的配置文件 -->
      		<property name="configLocation" value="mybatis/SqlMapConfig.xml"/>
      		<!-- 数据源 -->
-     		<property name="dataSource" ref=""/>
+     		<property name="dataSource" ref="dataSource"/>
      	</bean>
      	
    </beans>
@@ -2599,8 +2597,8 @@
 
    ```xml
    <!-- 原始dao接口 -->
-   <bean id="userDao" class="com.ryoukai.ssm.dao.UserDao">
-   	  <property name="SqlSessionFactory" ref="SqlSessionFactory"/>
+   <bean id="userDao" class="com.ryoukai.ssm.dao.impl.UserDaoImpl">
+    	 <property name="sqlSessionFactory" ref="sqlSessionFactory"/>
    </bean>
    ```
 
@@ -2609,7 +2607,7 @@
    UserDaoImplTest.java
 
    ```java
-   package com.ryoukai.ssm.test;
+   package com.ryoukai.ssm.dao.impl;
 
    import org.junit.Before;
    import org.junit.Test;
@@ -2660,5 +2658,209 @@
    }
    ```
 
-2. ​
+2. mapper.xml
+
+   拷贝UserMapper.xml
+
+   ```xml
+   <?xml version="1.0" encoding="UTF-8"?>
+   <!DOCTYPE mapper
+   PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+   <mapper namespace="com.ryoukai.ssm.mapper.UserMapper">
+
+   	<select id="findUserById" parameterType="int"
+   		resultType="com.ryoukai.ssm.po.User" useCache="true">
+   		select * from user where id=#{id}
+   	</select>
+
+   </mapper>
+   ```
+
+3. 通过MapperFactoryBean生成代理对象
+
+   applicationContext.xml
+
+   ```xml
+   <!-- mapper配置 -->
+   <!-- MapperFactoryBean: 根据Mapper接口生成代理对象 -->
+   <bean id="userMapper" class="org.mybatis.spring.mapper.MapperFactoryBean.class">
+       <property name="mapperInterface" value="com.ryoukai.ssm.mapper.UserMapper"/>
+       <property name="sqlSessionFactory" value="sqlSessionFactory"/>
+   </bean>
+   ```
+
+4. 在applicationContext.xml中配置mapper扫描器
+
+   ```xml
+   <!-- mapper批量扫描 -->
+   <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+       <!-- 如果扫描多个包，每个包中间使用逗号分隔，不能使用通配符 -->
+       <property name="basePackage" value="com.ryoukai.ssm.mapper"/>
+       <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
+   </bean>
+   ```
+
+5. 测试类
+
+   ```java
+   package com.ryoukai.ssm.mapper;
+
+   import org.junit.Before;
+   import org.junit.Test;
+   import org.springframework.context.ApplicationContext;
+   import org.springframework.context.support.ClassPathXmlApplicationContext;
+
+   import com.ryoukai.ssm.po.User;
+
+   public class UserMapperTest {
+   	
+   	private ApplicationContext applicationContext;
+
+   	@Before
+   	public void setUp() throws Exception {
+   		applicationContext = new ClassPathXmlApplicationContext("classpath:spring/applicationContext.xml");
+   	}
+
+   	@Test
+   	public void testFindUserById() {
+   		UserMapper userMapper = (UserMapper) applicationContext.getBean("userMapper");
+   		User user = userMapper.findUserById(1);
+   		System.out.println(user);
+   	}
+
+   }
+   ```
+
+
+
+
+## 8. 逆向工程
+
+- MyBatis提供逆向工程，针对单表自动生成MyBatis执行所需要的代码(mapper接口、mapper.xml、pojo类)
+- 企业的实际开发中，常用的逆向工程方式:
+  - 由数据库的表来生成Java代码
+
+
+
+### 8.01 逆向工程使用步骤
+
+1. 下载逆向工程
+
+   - mybatis-generator-1.3.5.zip
+
+2. 运行逆向工程的方式:
+
+   - 命令行工具和xml文件
+   - Ant和xml文件
+   - Maven插件
+   - Java程序和xml文件
+   - Java程序和Java的配置文件
+   - Eclipse插件
+
+   推荐使用Java程序和xml文件的运行方式，不依赖开发工具
+
+3. 生成代码配置文件
+
+   generatorConfig.xml(官方提供的示例)
+
+   ```xml
+   <?xml version="1.0" encoding="UTF-8"?>
+   <!DOCTYPE generatorConfiguration
+     PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN"
+     "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
+
+   <generatorConfiguration>
+     <classPathEntry location="/Program Files/IBM/SQLLIB/java/db2java.zip" />
+
+     <context id="testTables" targetRuntime="MyBatis3">
+       
+       <!-- 数据库连接的信息: 驱动类、连接地址、用户名、密码 -->
+       <jdbcConnection driverClass="com.mysql.jdbc.Driver"
+           connectionURL="jdbc:mysql://localhost:3306/test"
+           userId="root"
+           password="root">
+       </jdbcConnection>
+       
+       <!-- <jdbcConnection driverClass="oracle.jdbc.OracleDriver"
+           connectionURL="jdbc:oracle:thin:@127.0.0.1:1521:orcl"
+           userId="scott"
+           password="tiger">
+       </jdbcConnection> -->
+       
+       <!-- <jdbcConnection driverClass="COM.ibm.db2.jdbc.app.DB2Driver"
+           connectionURL="jdbc:db2:TEST"
+           userId="db2admin"
+           password="db2admin">
+       </jdbcConnection> -->
+   	
+       <javaTypeResolver >
+         <!-- value默认为false，表示把DECIMAL和NUMBERIC类型解析为Integer
+    	  	若value为true，表示把DECIMAL和NUMBERIC类型解析为java.math.BigDecimal -->
+         <property name="forceBigDecimals" value="false" />
+       </javaTypeResolver>
+   	
+       <!-- targetProject: 生成PO类的位置 -->
+       <javaModelGenerator targetPackage="test.model" targetProject="\MBGTestProject\src">
+         <!-- enableSubPackages: 是否让schema作为包的后缀 -->
+         <property name="enableSubPackages" value="true" />
+         <!-- trimStrings: 是否清理从数据库返回的值前后的空格 -->
+         <property name="trimStrings" value="true" />
+       </javaModelGenerator>
+   	
+       <!-- targetProject: mapper映射文件生成的位置 -->
+       <sqlMapGenerator targetPackage="test.xml"  targetProject="\MBGTestProject\src">
+         <!-- enableSubPackages: 是否让schema作为包的后缀 -->
+         <property name="enableSubPackages" value="true" />
+       </sqlMapGenerator>
+   	
+       <!-- targetPackage: mapper接口生成的位置 -->
+       <javaClientGenerator type="XMLMAPPER" targetPackage="test.dao"  targetProject="\MBGTestProject\src">
+         <!-- enableSubPackages: 是否让schema作为包的后缀 -->
+         <property name="enableSubPackages" value="true" />
+       </javaClientGenerator>
+   	
+       <!-- 指定数据库表 -->
+       <table tableName="user"></table>
+       <table tableName="items"></table>
+       <table tableName="orders"></table>
+       <table tableName="orderdetails"></table>
+       
+       <!-- 有些表字段需要指定java类型 -->
+       <!-- <table schema="" tableName="">
+    			<columnOverride column="" javaType="" />
+            </table> -->
+       
+       <!-- <table schema="DB2ADMIN" tableName="ALLTYPES" domainObjectName="Customer" >
+         <property name="useActualColumnNames" value="true"/>
+         <generatedKey column="ID" sqlStatement="DB2" identity="true" />
+         <columnOverride column="DATE_FIELD" property="startDate" />
+         <ignoreColumn column="FRED" />
+         <columnOverride column="LONG_VARCHAR_FIELD" jdbcType="VARCHAR" />
+       </table> -->
+
+     </context>
+   </generatorConfiguration>
+   ```
+
+4. 执行生成程序
+
+   ```java
+   List<String> warnings = new ArrayList<String>();
+   boolean overWrite = true;
+   //指定逆向工程配置文件
+   File configFile = new File("generatorConfig.xml");
+   ConfigurationParser cp = new ConfigurationParser(warnings);
+   Configuration config = cp.parseConfiguration(configFile);
+   DefaultShellCallback callback = new DefaultShellCallback(overWrite);
+   MyBatisGenerator myBatisGenerator = new MyBatisGenerator(config, callback, warnings);
+   myBatisGenerator.generate(null);
+   ```
+
+   执行这段代码，会生成po类和mapper接口及mapper.xml
+
+5. 使用生成的代码
+
+   - 将生成工程中生成的代码拷贝到自己的工程中
 
