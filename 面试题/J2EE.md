@@ -189,3 +189,79 @@
   这种方法有个优点: 可以定义别名。服务器端运行的项目名称为path，外部访问的URL则使用XML的文件名。这个方法很方便的隐藏了项目的名称，对一些项目名称被固定不能更换，但外部访问时又想换个路径，非常有效
 
 - 方法四: 可以用tomcat在线后台管理器,一般tomcat都打开了,直接上传war就可以
+
+
+
+### 4. 说一说Servlet的生命周期
+
+- servlet 有良好的生存期的定义， 包括加载和实例化、 初始化、 处理请求以及服务结束。这个生存期由 javax.servlet.Servlet 接口的 init,service 和 destroy 方法表达。Servlet 被服务器实例化后， 容器运行其 init 方法， 请求到达时运行其 service 方法， service方法自动派遣运行与请求对应的 doXXX 方法（ doGet， doPost） 等， 当服务器决定将实例销毁的时候调用其 destroy 方法。
+- web 容器加载 servlet， 生命周期开始。 通过调用 servlet 的 init()方法进行 servlet 的初始化。通过调用 service()方法实现， 根据请求的不同调用不同的 do***()方法。 结束服务， web 容器调用 servlet 的 destroy()方法。 
+
+
+
+### 5. Servlet API中forward()与redirect()的区别？
+
+- Forward和Redirect代表了两种请求转发方式: 直接转发和间接转发
+- 直接转发方式(Forward): 客户端和浏览器只发出一次请求，Servlet、HTML、JSP或其它信息资源，由第二个信息资源响应该请求，在请求对象request中，保存的对象对于每个信息资源是共享的
+- 间接转发方式(Redirect): 实际是两次HTTP请求，服务器端在响应第一次请求的时候，让浏览器再向另外一个URL发出请求，从而达到转发的目的。
+
+
+
+### 6. request.getAttribute()和 request.getParameter()有何区别?
+
+- getParameter 得到的都是 String 类型的，getAttribute 则可以是对象
+- getParameter()是获取 POST/GET 传递的参数值，getAttribute()是获取对象容器中的数据值
+- getParameter用于客户端重定向时，点击了链接或提交按扭时传值用，即用于在用表单或 url 重定向传值时接收数据用。getAttribute用于服务器端重定向时，在 sevlet 中使用了 forward 函数，或 struts 中使用了mapping.findForward，getAttribute 只能收到程序用 setAttribute 传过来的值。
+
+
+
+### 7. jsp静态包含和动态包含的区别
+
+- 在jsp中有两种包含，静态包含<%@include file="xxx.jsp"%>和动态包含\<jsp:include page="xxx.jsp">
+- <%@include file="xxx.jsp"%>为jsp中的编译指令，其文件的包含是发生在jsp向servlet转换的时期，而\<jsp:include page="xxx.jsp">是jsp中的动作指令，其文件的包含是发生在编译时期，也就是将java文件编译为class文件的时期
+- 使用静态包含只会产生一个class文件，而使用动态包含会产生多个class文件
+- 使用静态包含，包含页面和被包含页面的request对象为同一对象，因为静态包含只是将被包含的页面的内容复制到包含的页面中去；而动态包含包含页面和被包含页面不是同一个页面，被包含的页面的request对象可以取到的参数范围要相对大些，不仅可以取到传递到包含页面的参数，同样也能取得在包含页面向下传递的参数
+
+
+
+### 8. Http中，get和post方法的区别
+
+- get:
+  - 服务器交互: 获取数据
+  - 数据提交方式: 通过URL，以?分割URL和传输数据，参数之间以&相连
+  - 服务器获取数据方式: Request、QueryString
+  - 数据大小: 理论上1024字节，各浏览器限制不同，IE为2083k
+  - 安全性: 安全性差
+  - 性能: 高
+- post:
+  - 服务器交互: 传送数据
+  - 数据提交方式: 数据放置在Header内
+  - 服务器获取数据方式: Request.Form
+  - 数据大小: 没有限制，起限制作用的是服务器设置和内存大小以及程序的处理能力
+  - 安全性: 安全性好
+  - 性能: 略低
+- 建议:
+  - get方式的安全性较Post方式要差些，包含机密信息的话，建议用Post数据提交方式
+  - 在做数据查询时，建议用Get方式；而在做数据添加、修改或删除时，建议用Post方式
+
+
+
+### 9. 什么是cookie？Session和cookie有什么区别？
+
+- Cookie和Session都是会话技术，Cookie是运行在客户端，Session是运行在服务器端
+- Cookie有大小限制以及浏览器在存cookie的个数也有限制，Session是没有大小限制，服务器能存多少Session和内存大小有关
+- Cookie有安全隐患，通过拦截或本地文件找得到你的cookie后可以进行攻击
+- Session是保存在服务器端上会存在一段时间才会消失，如果session过多会增加服务器的压力
+
+
+
+### 10. jsp和servlet的区别、共同点、各自应用的范围
+
+- JSP在本质上就是SERVLET，但是两者的创建方式不一样
+- Servlet完全是JAVA程序代码构成，擅长于流程控制和事务处理，通过Servlet来生成动态网页很不直观。JSP由HTML代码和JSP标签构成，可以方便地编写动态网页。因此在实际应用中采用Servlet来控制业务流程，而采用JSP来生成动态网页
+- JSP编译后是"类servlet"
+- Servlet和JSP最主要的不同点在于，Servlet的应用逻辑是在Java文件中，并且完全从表示层中的HTML里分离开来。而JSP是Java和HTML组合成一个扩展名为.jsp的文件
+
+
+
+### 11. 
