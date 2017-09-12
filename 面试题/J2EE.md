@@ -263,5 +263,227 @@
 - Servlet和JSP最主要的不同点在于，Servlet的应用逻辑是在Java文件中，并且完全从表示层中的HTML里分离开来。而JSP是Java和HTML组合成一个扩展名为.jsp的文件
 
 
+### 11. JDBC的脏读是什么？哪种数据库隔离级别能防止脏读？ 
 
-### 11. 
+- 当我们使用事务时，有可能会出现这样的情况，有一行数据刚更新，与此同时另一个查询读到了这个刚更新的值。这样就导致了脏读，因为更新的数据还没有进行持久化，更新这行数据的业务可能会进行回滚，这样这个数据就是无效的。
+- 数据库的TRANSACTIONREADCOMMITTED，TRANSACTIONREPEATABLEREAD，和TRANSACTION_SERIALIZABLE隔离级别可以防止脏读。
+
+### 12. JDBC的DriverManager是用来做什么的？
+
+- JDBC的DriverManager是一个工厂类**，**我们通过它来创建数据库连接。当JDBC的Driver类被加载进来时，它会自己注册到DriverManager类里面。然后我们会把数据库配置信息传成DriverManager.getConnection()方法**，**DriverManager会使用注册到它里面的驱动来获取数据库连接**，**并返回给调用的程序。
+
+### 13. execute，executeQuery，executeUpdate的区别是什么？
+
+- execute方法的返回值是boolean类型。返回true表示有结果集，返回false表示无结果集
+- executeQuery只能运行select语句
+- executeUpdate能运行insert、delect、update语句,返回结果是处理的记录的条数
+
+### 14. 什么是Spring beans?
+
+- Spring bean 表示受到Spring管理的对象。**具体说来，它是被Spring框架容器初始化、配置和管理的对象。**Spring bean是在Spring的配置文件中定义（现在也可以通过annotation注解来定义），在Spring容器中初始化，然后注入到应用程序中的。
+- **Spring bean可以是POJO吗？**当然可以，并且它通常就是。（即使它并不一定得是POJO，例如Spring可以用来处理重量级Java对象，比如EJB对象）。
+
+### 15. 解释Spring支持的几种bean的作用域。
+
+- Spring支持如下5种作用域：
+  - singleton: 单例模式，在整个Spring IoC容器中，使用singleton定义的Bean将只有一个实例
+  - prototype: 原型模式，每次通过容器的getBean方法获取prototype定义的Bean时，都将产生一个新的Bean实例
+  - request: 对于每次HTTP请求，使用request定义的Bean都将产生一个新实例，即每次HTTP请求将会产生不同的Bean实例。只有在Web应用中使用Spring时，该作用域才有效
+  - session: 对于每次HTTP Session，使用session定义的Bean豆浆产生一个新实例。同样只有在Web应用中使用Spring时，该作用域才有效
+  - globalsession: 每个全局的HTTP Session，使用session定义的Bean都将产生一个新实例。典型情况下，仅在使用portlet context的时候有效。同样只有在Web应用中使用Spring时，该作用域才有效
+
+### 16. 解释Spring框架中bean的生命周期
+
+1. 实例化一个Bean－－也就是我们常说的new
+
+2. 按照Spring上下文对实例化的Bean进行配置－－也就是IOC注入
+
+3. 如果这个Bean已经实现了BeanNameAware接口，会调用它实现的setBeanName(String)方法，此处传递的就是Spring配置文件中Bean的id值
+
+4. 如果这个Bean已经实现了BeanFactoryAware接口，会调用它实现的setBeanFactory(setBeanFactory(BeanFactory)传递的是Spring工厂自身(可以用这个方式来获取其它Bean，只需在Spring配置文件中配置一个普通的Bean就可以)
+
+5. 如果这个Bean已经实现了ApplicationContextAware接口，会调用setApplicationContext(ApplicationContext)方法，传入Spring上下文(同样这个方式也可以实现步骤4的内容，但比4更好，因为ApplicationContext是BeanFactory的子接口，有更多的实现方法)
+
+6. 如果这个Bean关联了BeanPostProcessor接口，将会调用postProcessBeforeInitialization(Object obj, String s)方法，BeanPostProcessor经常被用作是Bean内容的更改，并且由于这个是在Bean初始化结束时调用那个的方法，也可以被应用于内存或缓存技术
+
+7. 如果Bean在Spring配置文件中配置了init-method属性会自动调用其配置的初始化方法。
+
+8. 如果这个Bean关联了BeanPostProcessor接口，将会调用postProcessAfterInitialization(Object obj, String s)方法
+
+注: 以上工作完成以后就可以应用这个Bean了，那这个Bean是一个Singleton的，所以一般情况下我们调用同一个id的Bean会是在内容地址相同的实例，当然在Spring配置文件中也可以配置非Singleton，这里我们不做赘述
+
+9. 当Bean不再需要时，会经过清理阶段，如果Bean实现了DisposableBean这个接口，会调用那个其实现的destroy()方法
+
+10. 最后，如果这个Bean的Spring配置中配置了destroy-method属性，会自动调用其配置的销毁方法
+
+### 17. 什么是ORM？
+
+- 关系型数据库和实体间做映射，操作对象的属性和方法，跳过SQL语句
+- 优点: 专用、庞大的数据库访问层可能不再需要、提高效率，像操作对象一样提取数据
+- 缺点: 固定思维模式、牺牲执行效率，很有可能将全部数据提取到内存对象中，持久化所有属性——不希望
+
+### 18. MyBatis中使用#和$书写占位符有什么区别？
+
+- \${}是Properties文件中的变量占位符，它可以用于标签属性值和sql内部，属于静态文本替换，比如${driver}会被静态替换为com.mysql.jdbc.Driver。#{}是sql的参数占位符，Mybatis会将sql中的#{}替换为?号，在sql执行前会使用PreparedStatement的参数设置方法，按序给sql的?号占位符设置参数值，比如ps.setInt(0, parameterValue)，#{item.name}的取值方式为使用反射从参数对象中获取item对象的name属性值，相当于param.getItem().getName()
+
+### 19. 解释一下MyBatis中命名空间(namespace)的作用
+
+- 对sql进行分类化管理，进行sql隔离
+- 区分二级缓存区域
+
+### 20. Mybatis是如何进行分页的？分页插件的原理是什么？
+
+- Mybatis使用RowBounds对象进行分页，它是针对ResultSet结果集执行的内存分页，而非物理分页，可以在sql内直接书写带有物理分页的参数来完成物理分页功能，也可以使用分页插件来完成物理分页
+- 分页插件的基本原理是使用Mybatis提供的插件接口，实现自定义插件，在插件的拦截方法内拦截待执行的sql，然后重写sql，根据dialect方言，添加对应的物理分页语句和物理分页参数。
+- 举例：select * from student，拦截sql后重写为：select t.* from （select * from student）t limit 0，10
+
+### 21. Mybatis动态sql是做什么的？都有哪些动态sql？能简述一下动态sql的执行原理不？
+
+- Mybatis动态sql可以让我们在Xml映射文件内，以标签的形式编写动态sql，完成逻辑判断和动态拼接sql的功能，Mybatis提供了9种动态sql标签trim|where|set|foreach|if|choose|when|otherwise|bind。
+- 其执行原理为，使用OGNL从sql参数对象中计算表达式的值，根据表达式的值动态拼接sql，以此来完成动态sql的功能
+
+### 22. JDBC编程有哪些不足之处，MyBatis是如何解决这些问题的？
+
+- 数据库连接，使用时就创建，不使用时就释放，对数据库进行频繁连接开启和关闭，造成数据库资源浪费，影响了数据库性能
+  - 解决方式: 使用数据库连接池
+- 将sql语句硬编码到java代码中，如果sql语句要修改，需要重新编译java代码，不利于系统维护
+  - 解决方式: 将sql语句配置在xml配置文件中，即使sql语句发生变化，也不需要重新编译java代码
+- 向preparedStatement中设置参数，对占位符号位置和设置参数值，硬编码在java代码中，不利于系统维护
+  - 解决方式: 将sql语句及占位符及参数全部配置在xml配置文件中
+- 从resultSet中遍历结果集数据时，将获取表的字段进行了硬编码，不利于系统维护
+  - 解决方式: 将查询的结果集自动映射成java对象
+
+### 23. 什么是AJAX？
+
+- 传统的Web应用交互由用户触发一个HTTP请求到服务器,服务器对其进行处理后再返回一个新的HTHL页到客户端, 每当服务器处理客户端提交的请求时,客户都只能空闲等待,并且哪怕只是一次很小的交互、只需从服务器端得到很简单的一个数据,都要返回一个完整的HTML页,而用户每次都要浪费时间和带宽去重新读取整个页面。这个做法浪费了许多带宽，由于每次应用的交互都需要向服务器发送请求，应用的响应时间就依赖于服务器的响应时间。这导致了用户界面的响应比本地应用慢得多
+- 与此不同，AJAX应用可以仅向服务器发送并取回必需的数据，它使用SOAP或其它一些基于XML的Web Service接口，并在客户端采用JavaScript处理来自服务器的响应。因为在服务器和浏览器之间交换的数据大量减少，结果我们就能看到响应更快的应用。同时很多的处理工作可以在发出请求的客户端机器上完成，所以Web服务器的处理时间也减少了
+- Ajax的工作原理相当于在用户和服务器之间加了—个中间层(AJAX引擎),使用户操作与服务器响应异步化。并不是所有的用户请求都提交给服务器,像—些数据验证和数据处理等都交给Ajax引擎自己来做, 只有确定需要从服务器读取新数据时再由Ajax引擎代为向服务器提交请求
+
+### 24. AJAX有哪些优点和缺点？
+
+- 优点: 
+  - 最大的一点是页面无刷新，用户的体验非常好
+  - 使用异步方式与服务器通信，具有更加迅速的响应能力
+  - 可以把以前一些服务器负担的工作转嫁到客户端，利用客户端闲置的能力来处理，减轻服务器和带宽的负担，节约空间和宽带租用成本。并且减轻服务器的负担，ajax的原则是“按需取数据”，可以最大程度的减少冗余请求，和响应对服务器造成的负担
+  - 基于标准化的并被广泛支持的技术，不需要下载插件或者小程序
+  - ajax可使因特网应用程序更小、更快，更友好
+- 缺点: 
+  - ajax不支持浏览器back按钮
+  - 安全问题 AJAX暴露了与服务器交互的细节
+  - 对搜索引擎的支持比较弱
+  - 破坏了程序的异常机制
+  - 不容易调试
+
+### 25. Ajax的实现流程是怎样的？
+
+```java
+//当页面加载完毕后，执行以下代码  
+window.onload = function(){  
+    document.getElementById("ok").onclick = function(){  
+        //1 创建XMLHttpRequest对象  
+        var xhr = ajaxFunction();  
+          
+        /* 
+         * 2    客户端与服务器端，建立连接 
+         *  
+         * open(method, url, asynch) 
+         *  * method:请求类型，类似 “GET”或”POST”的字符串 
+         *  * url:请求路径 
+         *  * asynch:表示请求是否要异步传输，默认值为true(异步)。 
+         */   
+        xhr.open("get","../testServlet?timeStamp="+new Date().getTime()+"&c=9",true);  
+          
+          
+        /* 
+         * 3    客户端向服务器端发送请求 
+         *  
+         * send()方法 
+         *  * 如果请求类型是GET方式的话，send()方法发送的请求数据，服务器端接收不到.这个步骤是不能省略的！ 
+         */   
+        xhr.send("a=7&b=8");        //send(null);  
+          
+        /*  
+         * 4    服务器端响应数据 
+         *  
+         * readyState 属性表示Ajax请求的当前状态。它的值用数字代表。 
+            0 代表未初始化。 还没有调用 open 方法 
+            1 代表正在加载。 open 方法已被调用，但 send 方法还没有被调用 
+            2 代表已加载完毕。send 已被调用。请求已经开始 
+            3 代表交互中。服务器正在发送响应 
+            4 代表完成。响应发送完毕 
+             
+            常用状态码及其含义： 
+            404 没找到页面(not found) 
+            403 禁止访问(forbidden) 
+            500 内部服务器出错(internal service error) 
+            200 一切正常(ok) 
+            304 没有被修改(not modified)(服务器返回304状态，表示源文件没有被修改 ) 
+         */  
+        xhr.onreadystatechange = function(){  
+//          alert(xhr.readyState);  
+//          alert(xhr.status);  
+            if(xhr.readyState==4){  
+                if(xhr.status==200||xhr.status==304){  
+                    var data = xhr.responseText;  
+                      
+                    alert(data);  
+                }  
+            }  
+        }  
+          
+          
+    }  
+}  
+  
+function ajaxFunction(){  
+   var xmlHttp;  
+   try{ // Firefox, Opera 8.0+, Safari  
+        xmlHttp=new XMLHttpRequest();  
+    }  
+    catch (e){  
+       try{// Internet Explorer  
+             xmlHttp=new ActiveXObject("Msxml2.XMLHTTP");  
+          }  
+        catch (e){  
+          try{  
+             xmlHttp=new ActiveXObject("Microsoft.XMLHTTP");  
+          }  
+          catch (e){}  
+          }  
+    }  
+  
+    return xmlHttp;  
+ }
+```
+
+### 26. 简单说一下数据库的三范式？
+
+- 第一范式: 
+  - 所谓第一范式（1NF）是指数据库表的每一列都是不可分割的基本数据项，同一列中不能有多个值，即实体中的某个属性不能有多个值或者不能有重复的属性。如果出现重复的属性，就可能需要定义一个新的实体，新的实体由重复的属性构成，新实体与原实体之间为一对多关系。在第一范式（1NF）中表的每一行只包含一个实例的信息。即列不可分
+  - 在任何一个关系数据库中，第一范式（1NF）是对关系模式的基本要求，不满足第一范式（1NF）的数据库就不是关系数据库。
+  - **确保每列保持原子性**
+- 第二范式: 
+  - 第二范式（2NF）是在第一范式（1NF）的基础上建立起来的，即满足第二范式（2NF）必须先满足第一范式（1NF）。第二范式（2NF）要求数据库表中的每个实例或行必须可以被惟一的区分。为实现区分通常需要为表加上一个列，以存储各个实例的惟一标识。要求实体的属性完全依赖于主关键字。
+  - 简单来说就是不能部分依赖。即一张表存在组合主键时，其他非主键字段不能部分依赖
+  - **确保表中的每列都和主键相关**
+- 第三范式:
+  - 满足第三范式（3NF）必须先满足第二范式（2NF）。简而言之，**第三范式（3NF）要求一个数据库表中不包含已在其它表中已包含的非主关键字信息**
+  - 在第二范式的基础上，数据表中如果不存在非关键字段对任一候选关键字段的传递函数依赖则符合第三范式
+  - 简单来说就是不能存在传递依赖。即除主键外，其他字段必须依赖主键
+  - **确保每列都和主键列直接相关,而不是间接相关**
+
+### 27. Java集合框架是什么？说出一些集合框架的优点？
+
+- 每种编程语言中都有集合，最初的Java版本包含几种集合类：Vector、Stack、HashTable和Array。随着集合的广泛使用，Java1.2提出了囊括所有集合接口、实现和算法的集合框架。在保证线程安全的情况下使用泛型和并发集合类，Java已经经历了很久。它还包括在Java并发包中，阻塞接口以及它们的实现。
+- 集合框架的部分优点如下:
+  - 使用核心集合类降低开发成本，而非实现我们自己的集合类
+  - 随着使用经过严格测试的集合框架类，代码质量会得到提高
+  - 通过使用JDK附带的集合类，可以降低代码维护成本
+  - 复用性和可操作性
+
+### 28. 集合框架中的泛型有什么优点？
+
+- Java1.5引入了泛型，所有的集合接口和实现都大量地使用它。泛型允许我们为集合提供一个可以容纳的对象类型，因此，如果你添加其它类型的任何元素，它会在编译时报错。这避免了在运行时出现ClassCastException，因为你将会在编译时得到报错信息。泛型也使得代码整洁，我们不需要使用显式转换和instanceOf操作符。它也给运行时带来好处，因为不会产生类型检查的字节码指令
+
+### 29. Iterater和ListIterator之间有什么区别？
+
