@@ -18,7 +18,7 @@
 
 - 安装jdk8
 
-> sudo apt install oracle-java8-insatller
+> sudo apt install oracle-java8-installer
 
 然后安装器会提示你同意oracle的服务条款，同意后会自动在线安装jdk
 
